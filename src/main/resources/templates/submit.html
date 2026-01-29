@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{submit.title}">Submit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; --success: #10b981; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
+        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        nav { display: flex; gap: 2rem; }
+        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
+        .nav-auth { display: flex; gap: 1rem; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
+        .btn-success { background: var(--success); color: white; width: 100%; }
+        .btn-success:hover:not(:disabled) { background: #059669; }
+        .btn-danger { background: #ef4444; color: white; }
+        .main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-family: 'Courier New', monospace; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
+                <nav>
+                    <a href="/" th:text="#{nav.home}">Home</a>
+                    <a href="/courses" th:text="#{nav.courses}">Courses</a>
+                    <a href="/submit" th:text="#{nav.submit}">Submit</a>
+                </nav>
+                <div class="nav-auth">
+                    <form th:action="@{/language}" method="post" style="margin: 0;">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">🌍 English</button>
+                        <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">🌍 Tiếng Việt</button>
+                    </form>
+                    <span th:text="${user.fullName}" th:if="${user}"></span>
+                    <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}" th:if="${user}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white;">
+            <h1 th:text="#{submit.title}" style="color: white;">Submit Your Code</h1>
+            <p th:text="#{submit.subtitle}" style="color: rgba(255,255,255,0.9);">Practice coding problems</p>
+        </div>
+
+        <div class="card">
+            <form th:action="@{/submit}" method="post">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div class="form-group">
+                    <label for="code" th:text="#{submit.pythonLabel}">Python Code</label>
+                    <textarea id="code" name="code" th:placeholder="#{submit.enterPython}" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success" th:text="#{submit.submit}">Submit Code</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
+    </footer>
+</body>
+</html>

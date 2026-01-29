@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{register.title}">Register</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
+        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        nav { display: flex; gap: 2rem; }
+        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
+        .nav-auth { display: flex; gap: 1rem; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+        .main { max-width: 400px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 0.75rem; padding: 2rem; border: 1px solid var(--border); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; }
+        h2 { text-align: center; margin-bottom: 0.5rem; }
+        .form-subtitle { text-align: center; color: var(--text-light); margin-bottom: 1.5rem; }
+        .login-link { text-align: center; margin-top: 1rem; }
+        .login-link a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
+                <nav>
+                    <a href="/" th:text="#{nav.home}">Home</a>
+                    <a href="/courses" th:text="#{nav.courses}">Courses</a>
+                </nav>
+                <div class="nav-auth">
+                    <form th:action="@{/language}" method="post" style="margin: 0;">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">🌍 English</button>
+                        <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">🌍 Tiếng Việt</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="card">
+            <h2 th:text="#{register.title}">Get Started</h2>
+            <p class="form-subtitle" th:text="#{register.subtitle}">Create a new account</p>
+
+            <form id="register-form">
+                <div id="register-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
+                <div id="register-success" style="display:none; margin-bottom:0.75rem; color:#059669; font-size:0.9rem;"></div>
+                <div class="form-group">
+                    <label for="fullName" th:text="#{register.fullName}">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" th:placeholder="#{register.fullNamePlaceholder}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email" th:text="#{register.email}">Email Address</label>
+                    <input type="email" id="email" name="email" th:placeholder="#{register.emailPlaceholder}" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Số điện thoại</label>
+                    <input type="tel" id="phone" name="phone" placeholder="VD: 0901234567" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" th:text="#{register.password}">Password</label>
+                    <input type="password" id="password" name="password" th:placeholder="#{register.passwordPlaceholder}" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword" th:text="#{register.confirmPassword}">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" th:placeholder="#{register.confirmPasswordPlaceholder}" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="register-submit" th:text="#{register.signup}">Sign Up</button>
+            </form>
+
+            <div class="login-link">
+                <p th:text="#{register.haveAccount}">Already have an account?</p>
+                <a href="/login" th:text="#{register.login}">Login here</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
+    </footer>
+
+    <script>
+        (function() {
+            const form = document.getElementById('register-form');
+            const submitBtn = document.getElementById('register-submit');
+            const errorBox = document.getElementById('register-error');
+            const successBox = document.getElementById('register-success');
+
+            if (!form) return;
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                errorBox.style.display = 'none';
+                errorBox.textContent = '';
+                successBox.style.display = 'none';
+                successBox.textContent = '';
+
+                const fullName = document.getElementById('fullName').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (!fullName || !email || !phone || !password || !confirmPassword) {
+                    errorBox.textContent = 'Vui lòng nhập đầy đủ thông tin.';
+                    errorBox.style.display = 'block';
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    errorBox.textContent = 'Mật khẩu xác nhận không khớp.';
+                    errorBox.style.display = 'block';
+                    return;
+                }
+
+                if (password.length < 6) {
+                    errorBox.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.';
+                    errorBox.style.display = 'block';
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Đang đăng ký...';
+
+                try {
+                    const res = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            fullName: fullName,
+                            email: email,
+                            phone: phone,
+                            password: password
+                        })
+                    });
+
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        errorBox.textContent = err.message || err.error || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.';
+                        errorBox.style.display = 'block';
+                    } else {
+                        successBox.textContent = 'Đăng ký thành công! Đang chuyển tới trang đăng nhập...';
+                        successBox.style.display = 'block';
+                        setTimeout(function() {
+                            window.location.href = '/login';
+                        }, 1500);
+                    }
+                } catch (err) {
+                    errorBox.textContent = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
+                    errorBox.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

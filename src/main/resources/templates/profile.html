@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin cá nhân</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #3b82f6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
+        .main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid var(--border); }
+        h1 { font-size: 1.75rem; margin-bottom: 1rem; }
+        .field-label { font-weight: 600; margin-top: 0.75rem; color: var(--text-light); }
+        .field-value { margin-top: 0.25rem; }
+        a { color: var(--primary); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <a href="/" style="text-decoration:none; color: var(--primary);">&larr; Trang chủ</a>
+        <div class="card" style="margin-top: 1rem;">
+            <h1>Thông tin cá nhân</h1>
+            <div>
+                <div class="field-label">Họ và tên</div>
+                <div class="field-value" th:text="${user.fullName != null ? user.fullName : 'Chưa cập nhật'}">User Name</div>
+            </div>
+            <div>
+                <div class="field-label">Email</div>
+                <div class="field-value" th:text="${user.email}">user@example.com</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
