@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/courses", "/login", "/register", "/language",
                                 "/dashboard", "/submit", "/create", "/purchase","/api/payments/charge",
-                                "/profile", "/my-courses",
+                                "/profile", "/my-courses", "/instructor/dashboard",
                                 "/css/**", "/js/**", "/images/**",
                                 "/api/public/**", "/h2-console/**",
                                 "/api/auth/**", "/api/payments/**",

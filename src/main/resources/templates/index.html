@@ -286,11 +286,12 @@
                             </svg>
                         </button>
                         <div class="user-menu-dropdown">
-                            <a href="/profile" class="user-menu-item">Thông tin cá nhân</a>
-                            <a href="/my-courses" class="user-menu-item">Khóa học đã mua</a>
-                            <a href="/dashboard" class="user-menu-item">Bảng điều khiển</a>
+                            <a href="/profile" class="user-menu-item" th:text="#{nav.profile}">Profile</a>
+                            <a href="/my-courses" class="user-menu-item" th:text="#{nav.myCourses}" th:if="${user.role.name() != 'ADMIN'}">My Courses</a>
+                            <a href="/dashboard" class="user-menu-item" th:text="#{nav.dashboard}">Dashboard</a>
+                            <a href="/instructor/dashboard" th:if="${user != null and user.role.name() == 'INSTRUCTOR'}" class="user-menu-item" th:text="#{nav.instructorDashboard}">Instructor Dashboard</a>
                             <div class="user-menu-separator"></div>
-                            <a href="/logout" class="user-menu-item" style="color: #b91c1c;">Đăng xuất</a>
+                            <a href="/logout" class="user-menu-item" style="color: #b91c1c;" th:text="#{nav.logout}">Logout</a>
                         </div>
                     </div>
                 </div>
@@ -314,12 +315,35 @@
             </div>
 
             <div class="grid" th:if="${!#lists.isEmpty(featuredCourses)}">
-                <div class="card" th:each="course : ${featuredCourses}">
-                    <h3 th:text="${course.title}">Course title</h3>
-                    <p th:text="${course.description}">Course description</p>
-                    <p style="margin-top: 0.5rem; font-weight: 600;">
-                        <span th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')}">0</span> VND
-                    </p>
+                <div class="card" th:each="course : ${featuredCourses}" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                    <div class="course-image" style="height: 160px; background-color: #f3f4f6; border-bottom: 1px solid var(--border); overflow: hidden;">
+                         <img th:if="${course.imageBase64 != null}" th:src="${course.imageBase64}" alt="Course Image" style="width: 100%; height: 100%; object-fit: cover;">
+                         <div th:if="${course.imageBase64 == null}" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-light);">
+                             No Image
+                         </div>
+                    </div>
+                    <div style="padding: 1.5rem; flex: 1; display: flex; flex-direction: column;">
+                        <h3 th:text="${course.title}" style="margin-bottom: 0.5rem; color: var(--primary);">Course title</h3>
+                        <p th:text="${course.description}" style="color: var(--text-light); margin-bottom: 1rem; flex: 1;">Course description</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                            <span style="font-weight: 600;" th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
+                            <div>
+                                <a th:if="${user == null || course.instructor == null || course.instructor.userId != user.userId}"
+                                   th:href="@{'/purchase?courseId=' + ${course.courseId}}"
+                                   class="btn btn-primary"
+                                   style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                                   th:text="#{home.enroll}">Enroll</a>
+                                
+                                <button th:if="${user != null && course.instructor != null && course.instructor.userId == user.userId}"
+                                        class="btn btn-secondary"
+                                        disabled="disabled"
+                                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem; opacity: 0.7; cursor: not-allowed; background-color: #6b7280; color: white; border: none;"
+                                        th:text="#{courses.ownCourse}">
+                                    Your Course
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

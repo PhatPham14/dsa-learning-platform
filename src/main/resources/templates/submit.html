@@ -58,13 +58,18 @@
         </div>
 
         <div class="card">
-            <form th:action="@{/submit}" method="post">
-                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <form id="submit-form">
+                <div id="submit-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
+                <div id="submit-success" style="display:none; margin-bottom:0.75rem; color:#10b981; font-size:0.9rem;"></div>
+
+                <input type="hidden" id="studentId" th:value="${user.userId}">
+                <input type="hidden" id="courseId" th:value="${courseId}">
+
                 <div class="form-group">
                     <label for="code" th:text="#{submit.pythonLabel}">Python Code</label>
                     <textarea id="code" name="code" th:placeholder="#{submit.enterPython}" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-success" th:text="#{submit.submit}">Submit Code</button>
+                <button type="submit" class="btn btn-success" id="submit-btn" th:text="#{submit.submit}">Submit Code</button>
             </form>
         </div>
     </main>
@@ -72,5 +77,62 @@
     <footer>
         <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
     </footer>
+
+    <script>
+        (function() {
+            const form = document.getElementById('submit-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const errorBox = document.getElementById('submit-error');
+            const successBox = document.getElementById('submit-success');
+
+            if (!form) return;
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                errorBox.style.display = 'none';
+                successBox.style.display = 'none';
+
+                const studentId = document.getElementById('studentId').value;
+                const courseId = document.getElementById('courseId').value;
+                const code = document.getElementById('code').value;
+
+                if (!courseId) {
+                    errorBox.textContent = '[[#{submit.error.noCourse}]]';
+                    errorBox.style.display = 'block';
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Đang nộp bài...';
+
+                try {
+                    const url = `/api/submissions?courseId=${courseId}&studentId=${studentId}`;
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        },
+                        body: code
+                    });
+
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        errorBox.textContent = err.message || 'Nộp bài thất bại.';
+                        errorBox.style.display = 'block';
+                    } else {
+                        successBox.textContent = 'Nộp bài thành công!';
+                        successBox.style.display = 'block';
+                    }
+                } catch (err) {
+                    errorBox.textContent = 'Có lỗi xảy ra.';
+                    errorBox.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

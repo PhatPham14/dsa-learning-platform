@@ -113,11 +113,12 @@
                             </svg>
                         </button>
                         <div class="user-menu-dropdown">
-                            <a href="/profile" class="user-menu-item">Thông tin cá nhân</a>
-                            <a href="/my-courses" class="user-menu-item">Khóa học đã mua</a>
-                            <a href="/dashboard" class="user-menu-item">Bảng điều khiển</a>
+                            <a href="/profile" class="user-menu-item" th:text="#{nav.profile}">Profile</a>
+                            <a href="/my-courses" class="user-menu-item" th:text="#{nav.myCourses}" th:if="${user.role.name() != 'ADMIN'}">My Courses</a>
+                            <a href="/dashboard" class="user-menu-item" th:text="#{nav.dashboard}">Dashboard</a>
+                            <a href="/instructor/dashboard" th:if="${user != null and user.role.name() == 'INSTRUCTOR'}" class="user-menu-item" th:text="#{nav.instructorDashboard}">Instructor Dashboard</a>
                             <div class="user-menu-separator"></div>
-                            <a href="/logout" class="user-menu-item" style="color: #b91c1c;">Đăng xuất</a>
+                            <a href="/logout" class="user-menu-item" style="color: #b91c1c;" th:text="#{nav.logout}">Logout</a>
                         </div>
                     </div>
                 </div>
@@ -133,28 +134,63 @@
 
         <div class="grid">
             <th:block th:if="${courses != null && !courses.isEmpty()}" th:each="course : ${courses}">
-                <div class="card">
-                    <h3 th:text="${course.title}">Course Title</h3>
-                    <p th:text="${course.description}">Course Description</p>
-                    <p style="color: var(--primary); font-weight: 600;">
-                        <span th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')}">0</span> VND
-                    </p>
+                <div class="card" th:style="${course.isActive} ? 'padding: 0; overflow: hidden; display: flex; flex-direction: column;' : 'padding: 0; overflow: hidden; display: flex; flex-direction: column; opacity: 0.7; background-color: #f3f4f6;'">
+                    <div class="course-image" style="height: 180px; background-color: #f3f4f6; border-bottom: 1px solid var(--border); overflow: hidden;">
+                         <img th:if="${course.imageBase64 != null}" th:src="${course.imageBase64}" alt="Course Image" style="width: 100%; height: 100%; object-fit: cover;">
+                         <div th:if="${course.imageBase64 == null}" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-light);">
+                             No Image
+                         </div>
+                    </div>
+                    <div style="padding: 1.5rem; flex: 1; display: flex; flex-direction: column;">
+                        <h3 th:text="${course.title}" style="color: var(--primary); margin-bottom: 0.5rem;">Course Title</h3>
+                        <p th:text="${course.description}" style="color: var(--text-light); margin-bottom: 1rem; flex: 1;">Course Description</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                            <span style="font-weight: 600;" th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
+                            
+                            <!-- Nếu chưa đăng nhập: chuyển sang trang login -->
+                            <a th:if="${user == null}"
+                               href="/login"
+                               class="btn btn-success"
+                               th:text="#{courses.enroll}">
+                                Enroll Now
+                            </a>
+        
+                            <!-- Nếu đã đăng nhập và đã mua khóa học: hiện nút disabled -->
+                            <button th:if="${user != null && enrolledCourseIds != null && enrolledCourseIds.contains(course.courseId)}"
+                                    class="btn btn-secondary"
+                                    disabled="disabled"
+                                    style="opacity: 0.7; cursor: not-allowed;"
+                                    th:text="#{courses.enrolled}">
+                                Enrolled
+                            </button>
 
-                    <!-- Nếu chưa đăng nhập: chuyển sang trang login -->
-                    <a th:if="${user == null}"
-                       href="/login"
-                       class="btn btn-success"
-                       th:text="#{courses.enroll}">
-                        Enroll Now
-                    </a>
-
-                    <!-- Nếu đã đăng nhập: chuyển tới trang thanh toán cho khóa học này -->
-                    <a th:if="${user != null}"
-                       th:href="@{/purchase(courseId=${course.courseId})}"
-                       class="btn btn-success"
-                       th:text="#{courses.enroll}">
-                        Enroll Now
-                    </a>
+                            <!-- Nếu đã đăng nhập và chưa mua: chuyển tới trang thanh toán -->
+                            <a th:if="${user != null && user.role.name() != 'ADMIN' && (enrolledCourseIds == null || !enrolledCourseIds.contains(course.courseId)) && (course.instructor == null || course.instructor.userId != user.userId)}"
+                               th:href="@{/purchase(courseId=${course.courseId})}"
+                               class="btn btn-success"
+                               th:text="#{courses.enroll}">
+                                Enroll Now
+                            </a>
+                            
+                            <!-- Nếu là Admin: Hiện nút Disable/Enable -->
+                            <form th:if="${user != null && user.role.name() == 'ADMIN'}" th:action="@{/admin/course/toggle-status}" method="post" style="display:inline;">
+                                 <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                 <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                 <button type="submit" class="btn" th:classappend="${course.isActive} ? 'btn-danger' : 'btn-success'" th:text="${course.isActive} ? #{admin.disable} : #{admin.enable}">
+                                     Disable/Enable
+                                 </button>
+                            </form>
+                            
+                            <!-- Nếu là instructor của khóa học này: Disable button -->
+                            <button th:if="${user != null && course.instructor != null && course.instructor.userId == user.userId}"
+                                    class="btn btn-secondary"
+                                    disabled="disabled"
+                                    style="opacity: 0.7; cursor: not-allowed; background-color: #6b7280;"
+                                    th:text="#{courses.ownCourse}">
+                                Your Course
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </th:block>
             <div th:if="${courses == null or courses.isEmpty()}" style="grid-column: 1/-1; padding: 2rem; text-align: center;">

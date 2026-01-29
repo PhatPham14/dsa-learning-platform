@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        h1 { color: #e74c3c; }
+        .container { max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Oops! Something went wrong.</h1>
+        <p th:if="${error}" th:text="${error}">Error details</p>
+        <p th:if="${message}" th:text="${message}">Message</p>
+        <a href="/" style="display: inline-block; margin-top: 20px; text-decoration: none; color: #3498db;">Return to Home</a>
+    </div>
+</body>
+</html>

@@ -31,4 +31,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         e.setStudent(user);
         return enrollmentRepository.save(e);
     }
+
+    @Override
+    public java.util.List<Enrollment> getEnrollmentsByStudent(Integer studentId) {
+        return enrollmentRepository.findByStudentUserId(studentId);
+    }
+
+    @Override
+    public boolean isEnrolled(Integer studentId, Long courseId) {
+        return enrollmentRepository.existsByStudentUserIdAndCourseCourseId(studentId, courseId);
+    }
 }

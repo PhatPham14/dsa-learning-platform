@@ -6,6 +6,7 @@ import com.edu.dsalearningplatform.security.jwt.JwtUtils;
 import com.edu.dsalearningplatform.security.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -66,7 +67,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             username = jwtUtils.getUsernameFromJwtToken(token);
             logger.debug("Token found for user: {}", username);
         } else {
-            logger.debug("No valid Authorization header found");
+            // Check for token in cookies
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("accessToken".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+
+            if (token != null) {
+                username = jwtUtils.getUsernameFromJwtToken(token);
+                logger.debug("Token found in cookie for user: {}", username);
+            } else {
+                logger.debug("No valid Authorization header or accessToken cookie found");
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:text="#{createCourse.title}">Create Course</title>
+    <!-- CSRF Meta Tags for AJAX -->
+    <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}" />
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
@@ -41,12 +45,13 @@
                 </nav>
                 <div class="nav-auth">
                     <form th:action="@{/language}" method="post" style="margin: 0;">
-                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                         <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">🌍 English</button>
-                         <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">🌍 Tiếng Việt</button>
+                        <!-- Safe CSRF handling -->
+                        <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                         <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">English</button>
+                         <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">Tiếng Việt</button>
                      </form>
-                    <span th:text="${user.fullName}" th:if="${user}"></span>
-                    <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}" th:if="${user}">Logout</a>
+                    <span th:text="${user.fullName}" th:if="${user != null}"></span>
+                    <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}" th:if="${user != null}">Logout</a>
                 </div>
             </div>
         </div>
@@ -58,27 +63,40 @@
             <p th:text="#{createCourse.shareExpertise}" style="color: rgba(255,255,255,0.9); margin: 0;">Share your expertise with students</p>
         </div>
 
-        <div class="card" th:if="${!user}">
+        <div class="card" th:if="${user == null}">
             <p style="color: var(--text-light);" th:text="#{createCourse.loginRequired2}">You must be logged in to create a course</p>
             <a href="/login" class="btn btn-secondary" th:text="#{nav.login}" style="display: inline-block; width: auto;">Login</a>
         </div>
 
-        <div class="card" th:if="${user}">
-            <form th:action="@{/api/courses}" method="post">
-                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <div class="card" th:if="${user != null}">
+            <form id="create-course-form">
+                <div id="create-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
+                <div id="create-success" style="display:none; margin-bottom:0.75rem; color:#10b981; font-size:0.9rem;"></div>
+
+                <input type="hidden" id="instructorId" th:value="${user.userId}" />
+
                  <div class="form-group">
                     <label for="title" th:text="#{createCourse.courseTitle}">Course Title</label>
-                    <input type="text" id="title" name="title" th:placeholder="#{createCourse.courseTitlePlaceholder}" required>
+                    <input type="text" id="title" name="title" th:placeholder="#{createCourse.courseTitlePlaceholder}" required="required" />
                  </div>
                 <div class="form-group">
                     <label for="description" th:text="#{createCourse.description}">Description</label>
-                    <textarea id="description" name="description" th:placeholder="#{createCourse.descriptionPlaceholder}" required></textarea>
+                    <textarea id="description" name="description" th:placeholder="#{createCourse.descriptionPlaceholder}" required="required"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="price" th:text="#{createCourse.price}">Price (USD)</label>
-                    <input type="number" id="price" name="price" th:placeholder="#{createCourse.pricePlaceholder}" min="0" step="0.01" required>
+                    <label for="price" th:text="#{createCourse.price}">Price (VND)</label>
+                    <input type="number" id="price" name="price" th:placeholder="#{createCourse.pricePlaceholder}" min="0" step="1" required="required" />
                 </div>
-                <button type="submit" class="btn btn-secondary" th:text="#{createCourse.createCourseBtn}">Create Course</button>
+                
+                <div class="form-group">
+                    <label for="courseImage" th:text="#{createCourse.imageLabel}">Course Image (Max 1MB)</label>
+                    <input type="file" id="courseImage" accept="image/*" />
+                    <div id="imagePreview" style="margin-top: 10px; display: none;">
+                        <img id="preview" src="" th:alt="#{createCourse.imagePreview}" style="max-width: 100%; max-height: 200px; border-radius: 0.5rem; border: 1px solid var(--border);" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-secondary" id="create-btn" th:text="#{createCourse.createCourseBtn}">Create Course</button>
             </form>
         </div>
     </main>
@@ -86,5 +104,95 @@
     <footer>
         <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
     </footer>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('courseImage');
+            const previewDiv = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('preview');
+            let base64String = "";
+
+            if(fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.size > 1024 * 1024) {
+                            alert("File too large! Max 1MB.");
+                            this.value = "";
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.src = e.target.result;
+                            previewDiv.style.display = 'block';
+                            base64String = e.target.result.split(',')[1];
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            const form = document.getElementById('create-course-form');
+            if(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const btn = document.getElementById('create-btn');
+                    const errorDiv = document.getElementById('create-error');
+                    const successDiv = document.getElementById('create-success');
+                    
+                    btn.disabled = true;
+                    btn.textContent = /*[[#{createCourse.creating}]]*/ "Creating...";
+                    errorDiv.style.display = 'none';
+                    successDiv.style.display = 'none';
+
+                    const data = {
+                        title: document.getElementById('title').value,
+                        description: document.getElementById('description').value,
+                        price: parseFloat(document.getElementById('price').value),
+                        instructorId: parseInt(document.getElementById('instructorId').value),
+                        imageBase64: base64String
+                    };
+
+                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+                    
+                    const headers = {
+                        'Content-Type': 'application/json'
+                    };
+                    if (csrfToken && csrfHeader) {
+                        headers[csrfHeader] = csrfToken;
+                    }
+
+                    fetch('/api/courses', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error("Failed to create course");
+                    })
+                    .then(result => {
+                        successDiv.textContent = /*[[#{createCourse.courseCreationSuccess}]]*/ "Course Created Successfully!";
+                        successDiv.style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = '/courses'; // Redirect to courses page
+                        }, 1500);
+                    })
+                    .catch(err => {
+                        errorDiv.textContent = /*[[#{createCourse.courseCreationFailed}]]*/ "Failed to create course";
+                        errorDiv.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = /*[[#{createCourse.createCourseBtn}]]*/ "Create Course";
+                    });
+                });
+            }
+        });
+        /*]]>*/
+    </script>
 </body>
 </html>

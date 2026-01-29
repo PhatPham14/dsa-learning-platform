@@ -10,7 +10,7 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
     /**
-     * Lấy một số khóa học đã publish mới nhất để hiển thị ở trang chủ.
+     * Lấy một số khóa học đã publish và active mới nhất để hiển thị ở trang chủ.
      */
-    List<Course> findTop6ByIsPublishedTrueOrderByCreatedAtDesc();
+    List<Course> findTop6ByIsPublishedTrueAndIsActiveTrueOrderByCreatedAtDesc();
 }

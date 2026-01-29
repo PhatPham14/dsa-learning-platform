@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông tin cá nhân</title>
+    <title th:text="#{profile.title}">Profile</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --primary: #3b82f6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
@@ -18,15 +18,15 @@
 </head>
 <body>
     <div class="main">
-        <a href="/" style="text-decoration:none; color: var(--primary);">&larr; Trang chủ</a>
+        <a href="/" style="text-decoration:none; color: var(--primary);">&larr; <span th:text="#{profile.backHome}">Back to Home</span></a>
         <div class="card" style="margin-top: 1rem;">
-            <h1>Thông tin cá nhân</h1>
+            <h1 th:text="#{profile.header}">Profile Information</h1>
             <div>
-                <div class="field-label">Họ và tên</div>
-                <div class="field-value" th:text="${user.fullName != null ? user.fullName : 'Chưa cập nhật'}">User Name</div>
+                <div class="field-label" th:text="#{profile.fullName}">Full Name</div>
+                <div class="field-value" th:text="${user.fullName != null ? user.fullName : #messages.msg('profile.notUpdated')}">User Name</div>
             </div>
             <div>
-                <div class="field-label">Email</div>
+                <div class="field-label" th:text="#{profile.email}">Email</div>
                 <div class="field-value" th:text="${user.email}">user@example.com</div>
             </div>
         </div>

@@ -7,4 +7,5 @@ public class CreateCourseRequest {
     public String description;
     public BigDecimal price;
     public Integer instructorId;
+    public String imageBase64;
 }

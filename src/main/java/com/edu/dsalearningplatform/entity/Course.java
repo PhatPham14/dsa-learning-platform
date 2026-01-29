@@ -43,4 +43,18 @@ public class Course {
 
     @Column(name = "is_published")
     private boolean isPublished = false;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    public boolean isActive() {
+        return Boolean.TRUE.equals(this.isActive);
+    }
+
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    @Column(name = "image_base64", columnDefinition = "nvarchar(max)")
+    private String imageBase64;
 }

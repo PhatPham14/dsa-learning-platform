@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
+        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        nav { display: flex; gap: 2rem; align-items: center; }
+        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
+        .nav-auth { display: flex; gap: 1rem; align-items: center; }
+        
+        /* User Menu Styles */
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-button { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; background: #f3f4f6; border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; }
+        .user-menu-dropdown { position: absolute; right: 0; margin-top: 0.5rem; background: white; border-radius: 0.75rem; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15); min-width: 220px; padding: 0.5rem 0; display: none; z-index: 200; }
+        .user-menu:hover .user-menu-dropdown { display: block; }
+        .user-menu-item { display: block; padding: 0.6rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; }
+        .user-menu-item:hover { background: #f3f4f6; }
+        .user-menu-separator { height: 1px; background: var(--border); margin: 0.25rem 0; }
+
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+
+        .main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 2rem; border-radius: 0.75rem; text-align: center; }
+        .stat-card h3 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .stat-card p { color: rgba(255,255,255,0.9); }
+        h1 { font-size: 2rem; margin-bottom: 1rem; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f3f4f6; color: var(--text-light); font-weight: 600; }
+        
+        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
+                <nav>
+                    <a href="/" th:text="#{nav.home}">Home</a>
+                    <a href="/courses" th:text="#{nav.courses}">Courses</a>
+                    <a href="/create" class="btn btn-primary" style="color: white;" th:text="#{nav.create}">Create Course</a>
+                </nav>
+                <div class="nav-auth">
+                    <div th:if="${user != null}" class="user-menu">
+                        <button type="button" class="user-menu-button">
+                            <span th:text="${user.fullName}">User</span>
+                            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z"/></svg>
+                        </button>
+                        <div class="user-menu-dropdown">
+                            <a href="/profile" class="user-menu-item" th:text="#{nav.profile}">Profile</a>
+                            <a href="/my-courses" class="user-menu-item" th:text="#{nav.myCourses}">My Courses</a>
+                            <a href="/dashboard" class="user-menu-item" th:text="#{nav.dashboard}">Dashboard</a>
+                            <a href="/instructor/dashboard" class="user-menu-item" th:text="#{nav.instructorDashboard}">Instructor Dashboard</a>
+                            <div class="user-menu-separator"></div>
+                            <a href="/logout" class="user-menu-item" style="color: #b91c1c;" th:text="#{nav.logout}">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <h1>Instructor Dashboard</h1>
+        
+        <div class="grid">
+            <div class="stat-card">
+                <h3 th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</h3>
+                <p>Total Revenue (From Sales)</p>
+            </div>
+            <div class="stat-card">
+                <h3 th:text="${#numbers.formatDecimal(totalInstructorShare, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</h3>
+                <p>Your Earnings (90%)</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Revenue by Course</h2>
+            <table th:if="${!revenueByCourse.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>Course Title</th>
+                        <th>Total Earnings (90%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="entry : ${revenueByCourse}">
+                        <td th:text="${entry.key}">Course</td>
+                        <td th:text="${#numbers.formatDecimal(entry.value, 0, 'COMMA', 0, 'POINT')} + ' VND'" style="font-weight: bold; color: green;">Amount</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p th:if="${revenueByCourse.isEmpty()}" style="color: var(--text-light);">No course sales yet.</p>
+        </div>
+
+        <div class="card">
+            <h2>Transaction History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Student</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Your Share (85%)</th>
+                        <th>Admin Share (15%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:if="${!#lists.isEmpty(payments)}">
+                        <tr th:each="payment : ${payments}">
+                            <td th:text="${payment.courseTitle != null ? payment.courseTitle : 'Unknown Course'}">Course</td>
+                            <td th:text="${payment.studentName != null ? payment.studentName : 'Unknown Student'}">Student</td>
+                            <td th:text="${payment.paidAt != null ? #temporals.format(payment.paidAt, 'dd-MM-yyyy HH:mm') : 'N/A'}">Date</td>
+                            <td th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT')} + ' VND'">Amount</td>
+                            <td th:text="${#numbers.formatDecimal(payment.instructorShare, 0, 'COMMA', 0, 'POINT')} + ' VND'" style="color: green; font-weight: bold;">Share</td>
+                            <td th:text="${#numbers.formatDecimal(payment.adminShare, 0, 'COMMA', 0, 'POINT')} + ' VND'" style="color: gray;">Admin</td>
+                        </tr>
+                    </th:block>
+                    <tr th:if="${#lists.isEmpty(payments)}">
+                        <td colspan="6" style="text-align: center; color: var(--text-light);">No sales yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
+    </footer>
+</body>
+</html>

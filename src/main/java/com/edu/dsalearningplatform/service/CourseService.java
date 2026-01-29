@@ -22,4 +22,9 @@ public interface CourseService {
       * Lấy thông tin khóa học theo ID.
       */
      Course getCourseById(Long courseId);
+
+    /**
+     * Thay đổi trạng thái active của khóa học (cho Admin).
+     */
+    void toggleStatus(Long courseId);
 }

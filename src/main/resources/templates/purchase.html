@@ -102,13 +102,14 @@
 
         <div class="card" th:if="${user != null && course != null}">
             <h3 style="margin-bottom: 1rem;">Xác nhận thanh toán</h3>
-            <form th:action="@{/api/payments/charge}" method="post">
-                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <form id="purchase-form">
+                <div id="purchase-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
+                <div id="purchase-success" style="display:none; margin-bottom:0.75rem; color:#10b981; font-size:0.9rem;"></div>
 
                 <!-- studentId từ user đã đăng nhập -->
-                <input type="hidden" name="studentId" th:value="${user.userId}">
+                <input type="hidden" id="studentId" th:value="${user.userId}">
                 <!-- courseId ẩn, không cho chỉnh sửa -->
-                <input type="hidden" name="courseId" th:value="${course.courseId}">
+                <input type="hidden" id="courseId" th:value="${course.courseId}">
 
                 <div class="form-group">
                     <label for="provider">Phương thức thanh toán</label>
@@ -117,7 +118,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-success" th:text="#{purchase.completePurchase}">Complete Purchase</button>
+                <button type="submit" class="btn btn-success" id="purchase-btn" th:text="#{purchase.completePurchase}">Complete Purchase</button>
             </form>
         </div>
     </main>
@@ -125,5 +126,61 @@
     <footer>
         <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
     </footer>
+
+    <script>
+        (function() {
+            const form = document.getElementById('purchase-form');
+            const submitBtn = document.getElementById('purchase-btn');
+            const errorBox = document.getElementById('purchase-error');
+            const successBox = document.getElementById('purchase-success');
+
+            if (!form) return;
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                errorBox.style.display = 'none';
+                successBox.style.display = 'none';
+
+                const studentId = document.getElementById('studentId').value;
+                const courseId = document.getElementById('courseId').value;
+                const provider = document.getElementById('provider').value;
+
+                if (!studentId || !courseId) {
+                    errorBox.textContent = 'Thiếu thông tin thanh toán.';
+                    errorBox.style.display = 'block';
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Đang xử lý...';
+
+                try {
+                    const url = `/api/payments/charge?studentId=${studentId}&courseId=${courseId}&provider=${provider}`;
+                    const res = await fetch(url, {
+                        method: 'POST'
+                    });
+
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        errorBox.textContent = err.message || 'Thanh toán thất bại.';
+                        errorBox.style.display = 'block';
+                    } else {
+                        successBox.textContent = 'Thanh toán thành công! Đang chuyển hướng...';
+                        successBox.style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = '/my-courses';
+                        }, 1500);
+                    }
+                } catch (err) {
+                    errorBox.textContent = 'Có lỗi xảy ra.';
+                    errorBox.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

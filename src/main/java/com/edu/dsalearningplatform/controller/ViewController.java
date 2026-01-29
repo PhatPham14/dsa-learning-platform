@@ -1,9 +1,12 @@
 package com.edu.dsalearningplatform.controller;
 
 import com.edu.dsalearningplatform.entity.User;
+import com.edu.dsalearningplatform.enums.UserRole;
 import com.edu.dsalearningplatform.repository.UserRepository;
 import com.edu.dsalearningplatform.security.jwt.JwtUtils;
 import com.edu.dsalearningplatform.service.CourseService;
+import com.edu.dsalearningplatform.service.EnrollmentService;
+import com.edu.dsalearningplatform.service.PaymentService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -13,6 +16,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 public class ViewController {
@@ -24,9 +34,13 @@ public class ViewController {
     private UserRepository userRepository;
 
     private final CourseService courseService;
+    private final EnrollmentService enrollmentService;
+    private final PaymentService paymentService;
 
-    public ViewController(CourseService courseService) {
+    public ViewController(CourseService courseService, EnrollmentService enrollmentService, PaymentService paymentService) {
         this.courseService = courseService;
+        this.enrollmentService = enrollmentService;
+        this.paymentService = paymentService;
     }
 
     private User getCurrentUser(HttpServletRequest request) {
@@ -73,7 +87,7 @@ public class ViewController {
         }
         // Khóa học nổi bật cho trang chủ, không yêu cầu đăng nhập
         model.addAttribute("featuredCourses", courseService.getFeaturedCourses());
-        return "home";
+        return "index";
     }
 
     @GetMapping("/courses")
@@ -82,8 +96,17 @@ public class ViewController {
         if (user != null) {
             model.addAttribute("user", user);
         }
-        // Lấy danh sách khóa học từ service để render trực tiếp bằng Thymeleaf
-        model.addAttribute("courses", courseService.getAllCourses());
+        // Lấy danh sách khóa học từ service
+        List<com.edu.dsalearningplatform.entity.Course> courses = courseService.getAllCourses();
+
+        // Nếu không phải Admin, chỉ hiển thị khóa học đang active
+        if (user == null || user.getRole() != UserRole.ADMIN) {
+            courses = courses.stream()
+                    .filter(com.edu.dsalearningplatform.entity.Course::isActive)
+                    .collect(Collectors.toList());
+        }
+
+        model.addAttribute("courses", courses);
         return "courses";
     }
 
@@ -109,17 +132,72 @@ public class ViewController {
         if (user == null) {
             return "redirect:/login";
         }
+        if (user.getRole() == UserRole.ADMIN) {
+            return "redirect:/admin/dashboard";
+        }
         model.addAttribute("user", user);
         return "dashboard";
     }
 
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard(HttpServletRequest request, Model model) {
+        try {
+            User user = getCurrentUser(request);
+            if (user == null) {
+                return "redirect:/login";
+            }
+            if (user.getRole() != UserRole.ADMIN) {
+                return "redirect:/";
+            }
+            model.addAttribute("user", user);
+
+            var payments = paymentService.getAllPayments();
+            model.addAttribute("payments", payments);
+
+            BigDecimal totalRevenue = payments.stream()
+                .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+            BigDecimal totalAdminShare = payments.stream()
+                .map(p -> p.getAdminShare() != null ? p.getAdminShare() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            model.addAttribute("totalRevenue", totalRevenue);
+            model.addAttribute("totalAdminShare", totalAdminShare);
+
+            // Aggregate revenue by course
+            Map<String, BigDecimal> revenueByCourse = payments.stream()
+                .collect(Collectors.groupingBy(
+                    p -> p.getCourseTitle() != null ? p.getCourseTitle() : "Unknown Course",
+                    Collectors.reducing(BigDecimal.ZERO, 
+                        p -> p.getAdminShare() != null ? p.getAdminShare() : BigDecimal.ZERO, 
+                        BigDecimal::add)
+                ));
+            model.addAttribute("revenueByCourse", revenueByCourse);
+
+            // New stats
+            List<Object[]> bestSellingCourses = paymentService.getBestSellingCoursesThisMonth();
+            model.addAttribute("bestSellingCourses", bestSellingCourses);
+
+            List<Object[]> revenueLast3Months = paymentService.getRevenueLast3Months();
+            model.addAttribute("revenueLast3Months", revenueLast3Months);
+
+            return "adminDashboard";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
+            return "error";
+        }
+    }
+
     @GetMapping("/submit")
-    public String submit(HttpServletRequest request, Model model) {
+    public String submit(@RequestParam(required = false) Long courseId, HttpServletRequest request, Model model) {
         User user = getCurrentUser(request);
         if (user == null) {
             return "redirect:/login";
         }
         model.addAttribute("user", user);
+        model.addAttribute("courseId", courseId);
         return "submit";
     }
 
@@ -129,26 +207,105 @@ public class ViewController {
         if (user == null) {
             return "redirect:/login";
         }
+        // Chỉ cho phép Instructor tạo khóa học
+        if (user.getRole() != UserRole.INSTRUCTOR) {
+             return "redirect:/";
+        }
         model.addAttribute("user", user);
         return "createCourse";
+    }
+
+    @GetMapping("/instructor/dashboard")
+    public String instructorDashboard(HttpServletRequest request, Model model) {
+        try {
+            User user = getCurrentUser(request);
+            if (user == null) {
+                return "redirect:/login";
+            }
+            if (user.getRole() != UserRole.INSTRUCTOR) {
+                return "redirect:/";
+            }
+            model.addAttribute("user", user);
+
+            var payments = paymentService.getPaymentsByInstructor(user.getUserId());
+            model.addAttribute("payments", payments);
+
+            BigDecimal totalRevenue = payments.stream()
+                .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+            BigDecimal totalInstructorShare = payments.stream()
+                .map(p -> p.getInstructorShare() != null ? p.getInstructorShare() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            model.addAttribute("totalRevenue", totalRevenue);
+            model.addAttribute("totalInstructorShare", totalInstructorShare);
+
+            // Aggregate revenue by course
+            Map<String, BigDecimal> revenueByCourse = payments.stream()
+                .collect(Collectors.groupingBy(
+                    p -> p.getCourseTitle() != null ? p.getCourseTitle() : "Unknown Course",
+                    Collectors.reducing(BigDecimal.ZERO, 
+                        p -> p.getInstructorShare() != null ? p.getInstructorShare() : BigDecimal.ZERO, 
+                        BigDecimal::add)
+                ));
+            model.addAttribute("revenueByCourse", revenueByCourse);
+
+            return "instructorDashboard";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
+            return "error";
+        }
     }
 
     @GetMapping("/purchase")
     public String purchase(@RequestParam(name = "courseId", required = false) Long courseId,
                            HttpServletRequest request,
-                           Model model) {
+                           Model model,
+                           RedirectAttributes redirectAttributes) {
         User user = getCurrentUser(request);
         if (user != null) {
             model.addAttribute("user", user);
+            if (courseId != null && enrollmentService.isEnrolled(user.getUserId(), courseId)) {
+                redirectAttributes.addFlashAttribute("message", "Bạn đã sở hữu khóa học này.");
+                return "redirect:/my-courses";
+            }
         }
 
         // Load thông tin khóa học từ database
         if (courseId != null) {
             var course = courseService.getCourseById(courseId);
+            
+            if (course == null || !course.isActive()) {
+                redirectAttributes.addFlashAttribute("message", "Khóa học này hiện không khả dụng.");
+                return "redirect:/courses";
+            }
+
+            // Check if user is instructor
+            if (user != null && course.getInstructor() != null && course.getInstructor().getUserId().equals(user.getUserId())) {
+                redirectAttributes.addFlashAttribute("message", "Bạn không thể mua khóa học do chính mình tạo.");
+                return "redirect:/courses";
+            }
+            // Check if user is Admin
+            if (user != null && user.getRole() == UserRole.ADMIN) {
+                redirectAttributes.addFlashAttribute("message", "Admin không thể mua khóa học.");
+                return "redirect:/courses";
+            }
             model.addAttribute("course", course);
         }
         model.addAttribute("courseId", courseId);
         return "purchase";
+    }
+
+    @PostMapping("/admin/course/toggle-status")
+    public String toggleCourseStatus(@RequestParam Long courseId, HttpServletRequest request) {
+        User user = getCurrentUser(request);
+        if (user == null || user.getRole() != UserRole.ADMIN) {
+            return "redirect:/login";
+        }
+        courseService.toggleStatus(courseId);
+        return "redirect:/courses";
     }
 
     @GetMapping("/profile")
@@ -167,8 +324,14 @@ public class ViewController {
         if (user == null) {
             return "redirect:/login";
         }
+        if (user.getRole() == UserRole.ADMIN) {
+            return "redirect:/admin/dashboard";
+        }
         model.addAttribute("user", user);
-        // TODO: Khi có logic enrollment, truyền danh sách khóa học đã mua vào model
+        
+        var enrollments = enrollmentService.getEnrollmentsByStudent(user.getUserId());
+        model.addAttribute("enrollments", enrollments);
+        
         return "myCourses";
     }
 

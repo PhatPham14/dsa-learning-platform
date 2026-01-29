@@ -27,6 +27,7 @@ public class CourseServiceImpl implements CourseService {
         course.setTitle(req.title);
         course.setDescription(req.description);
         course.setPrice(req.price);
+        course.setImageBase64(req.imageBase64);
         if (req.instructorId != null) {
             User instructor = userRepository.findById(req.instructorId).orElse(null);
             course.setInstructor(instructor);
@@ -36,7 +37,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<Course> getFeaturedCourses() {
-        return courseRepository.findTop6ByIsPublishedTrueOrderByCreatedAtDesc();
+        return courseRepository.findTop6ByIsPublishedTrueAndIsActiveTrueOrderByCreatedAtDesc();
     }
 
     @Override
@@ -51,5 +52,12 @@ public class CourseServiceImpl implements CourseService {
             return null;
         }
         return courseRepository.findById(courseId).orElse(null);
+    }
+
+    @Override
+    public void toggleStatus(Long courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        course.setActive(!course.isActive());
+        courseRepository.save(course);
     }
 }
