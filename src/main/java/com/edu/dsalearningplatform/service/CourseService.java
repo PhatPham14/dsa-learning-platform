@@ -13,6 +13,8 @@ public interface CourseService {
      */
     List<Course> getFeaturedCourses();
 
+    List<Course> getPendingCourses();
+
      /**
       * Lấy tất cả khóa học (có thể lọc/publish sau này) cho trang /courses.
       */

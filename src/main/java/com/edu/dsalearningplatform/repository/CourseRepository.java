@@ -13,4 +13,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * Lấy một số khóa học đã publish và active mới nhất để hiển thị ở trang chủ.
      */
     List<Course> findTop6ByIsPublishedTrueAndIsActiveTrueOrderByCreatedAtDesc();
+
+    List<Course> findByIsActiveFalse();
 }

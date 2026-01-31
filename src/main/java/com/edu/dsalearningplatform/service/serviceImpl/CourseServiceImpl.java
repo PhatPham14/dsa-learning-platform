@@ -32,12 +32,18 @@ public class CourseServiceImpl implements CourseService {
             User instructor = userRepository.findById(req.instructorId).orElse(null);
             course.setInstructor(instructor);
         }
+        course.setActive(false); // Default to inactive, waiting for admin approval
         return courseRepository.save(course);
     }
 
     @Override
     public List<Course> getFeaturedCourses() {
         return courseRepository.findTop6ByIsPublishedTrueAndIsActiveTrueOrderByCreatedAtDesc();
+    }
+
+    @Override
+    public List<Course> getPendingCourses() {
+        return courseRepository.findByIsActiveFalse();
     }
 
     @Override
