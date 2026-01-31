@@ -2,11 +2,11 @@ package com.edu.dsalearningplatform.controller;
 
 import com.edu.dsalearningplatform.entity.User;
 import com.edu.dsalearningplatform.enums.UserRole;
-import com.edu.dsalearningplatform.repository.UserRepository;
 import com.edu.dsalearningplatform.security.jwt.JwtUtils;
 import com.edu.dsalearningplatform.service.CourseService;
 import com.edu.dsalearningplatform.service.EnrollmentService;
 import com.edu.dsalearningplatform.service.PaymentService;
+import com.edu.dsalearningplatform.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -29,9 +29,8 @@ public class ViewController {
 
     @Autowired(required = false)
     private JwtUtils jwtUtils;
-
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     private final CourseService courseService;
     private final EnrollmentService enrollmentService;
@@ -67,7 +66,7 @@ public class ViewController {
             String username = jwtUtils.getUsernameFromJwtToken(token);
             // Query user thật từ database để có đầy đủ thông tin (userId, fullName, ...)
             // JWT subject trong hệ thống này là phone number
-            return userRepository.findByPhone(username)
+            return userService.getUserByPhone(username)
                     .orElseGet(() -> {
                         // Fallback: tạo user tạm nếu không tìm thấy trong DB
                         User tempUser = new User();

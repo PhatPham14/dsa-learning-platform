@@ -136,10 +136,8 @@
             <th:block th:if="${courses != null && !courses.isEmpty()}" th:each="course : ${courses}">
                 <div class="card" th:style="${course.isActive} ? 'padding: 0; overflow: hidden; display: flex; flex-direction: column;' : 'padding: 0; overflow: hidden; display: flex; flex-direction: column; opacity: 0.7; background-color: #f3f4f6;'">
                     <div class="course-image" style="height: 180px; background-color: #f3f4f6; border-bottom: 1px solid var(--border); overflow: hidden;">
-                         <img th:if="${course.imageBase64 != null}" th:src="${course.imageBase64}" alt="Course Image" style="width: 100%; height: 100%; object-fit: cover;">
-                         <div th:if="${course.imageBase64 == null}" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-light);">
-                             No Image
-                         </div>
+                        <img th:if="${course.imageData != null and !#strings.isEmpty(course.imageData)}" th:src="${course.imageData}" alt="Course Image" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img th:if="${course.imageData == null or #strings.isEmpty(course.imageData)}" th:src="@{/images/default-course.svg}" alt="Default Course Image" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div style="padding: 1.5rem; flex: 1; display: flex; flex-direction: column;">
                         <h3 th:text="${course.title}" style="color: var(--primary); margin-bottom: 0.5rem;">Course Title</h3>

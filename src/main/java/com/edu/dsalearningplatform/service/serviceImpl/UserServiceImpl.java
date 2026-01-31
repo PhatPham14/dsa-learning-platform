@@ -8,7 +8,8 @@ import com.edu.dsalearningplatform.enums.UserRole;
 import com.edu.dsalearningplatform.exception.UserAlreadyExistsException;
 import com.edu.dsalearningplatform.repository.UserRepository;
 import com.edu.dsalearningplatform.service.UserService;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.data.domain.Page;
@@ -27,8 +28,9 @@ import java.util.stream.Collectors;
 
 @Service
 //@RequiredArgsConstructor
-@Slf4j
 public class UserServiceImpl implements UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private final UserRepository userRepository;
@@ -131,7 +133,7 @@ public class UserServiceImpl implements UserService {
         dto.setFullName(user.getFullName());
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());
-        dto.setIsActive(user.isActive()); // Use getter for isActive
+        dto.setActive(user.isActive()); // Use getter for isActive
         dto.setRole(user.getRole().name());
         return dto;
     }
@@ -187,6 +189,8 @@ public class UserServiceImpl implements UserService {
     public UserResponse getMyProfile(User loggedInUser) {
         return null;
     }
+
+
 
     @Override
     public UserResponse updateMyProfile(User loggedInUser, UpdateProfileRequest request) {

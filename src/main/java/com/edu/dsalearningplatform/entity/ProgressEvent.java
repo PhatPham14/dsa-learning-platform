@@ -1,18 +1,12 @@
 package com.edu.dsalearningplatform.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
 @Table(name = "progress_event")
 public class ProgressEvent {
 
@@ -37,4 +31,55 @@ public class ProgressEvent {
 
     @CreationTimestamp
     private LocalDateTime eventAt;
+
+    public ProgressEvent() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getStudent() {
+        return student;
+    }
+
+    public void setStudent(User student) {
+        this.student = student;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public Integer getValue() {
+        return value;
+    }
+
+    public void setValue(Integer value) {
+        this.value = value;
+    }
+
+    public LocalDateTime getEventAt() {
+        return eventAt;
+    }
+
+    public void setEventAt(LocalDateTime eventAt) {
+        this.eventAt = eventAt;
+    }
 }

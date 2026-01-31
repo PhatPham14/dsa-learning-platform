@@ -26,6 +26,7 @@ public interface UserService {
 
     // lấy thông tin người dùng đang đăng nhập
     UserResponse getMyProfile(User loggedInUser);
+//    UserResponse getUserByPhone(String phone);
 
     // Cập nhật thông tin hồ sơ của người dùng đang đăng nhập.
     UserResponse updateMyProfile(User loggedInUser, UpdateProfileRequest request);

@@ -27,7 +27,7 @@ public class CourseServiceImpl implements CourseService {
         course.setTitle(req.title);
         course.setDescription(req.description);
         course.setPrice(req.price);
-        course.setImageBase64(req.imageBase64);
+        course.setImageData(req.imageBase64);
         if (req.instructorId != null) {
             User instructor = userRepository.findById(req.instructorId).orElse(null);
             course.setInstructor(instructor);

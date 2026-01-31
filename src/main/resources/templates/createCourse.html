@@ -126,7 +126,7 @@
                         reader.onload = function(e) {
                             previewImg.src = e.target.result;
                             previewDiv.style.display = 'block';
-                            base64String = e.target.result.split(',')[1];
+                            base64String = e.target.result;
                         };
                         reader.readAsDataURL(file);
                     }
