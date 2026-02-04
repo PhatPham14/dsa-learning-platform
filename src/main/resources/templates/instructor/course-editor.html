@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Course - Instructor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; --danger: #ef4444; --success: #10b981; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
+        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        nav { display: flex; gap: 2rem; align-items: center; }
+        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
+        .nav-auth { display: flex; gap: 1rem; align-items: center; }
+        
+        /* User Menu Styles */
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-button { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; background: #f3f4f6; border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; }
+        .user-menu-dropdown { position: absolute; right: 0; margin-top: 0.5rem; background: white; border-radius: 0.75rem; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15); min-width: 220px; padding: 0.5rem 0; display: none; z-index: 200; }
+        .user-menu:hover .user-menu-dropdown { display: block; }
+        .user-menu-item { display: block; padding: 0.6rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; }
+        .user-menu-item:hover { background: #f3f4f6; }
+        .user-menu-separator { height: 1px; background: var(--border); margin: 0.25rem 0; }
+
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; text-decoration: none; display: inline-block; font-size: 0.9rem; transition: background-color 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #f3f4f6; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+        .btn-icon { display: inline-flex; align-items: center; gap: 0.25rem; }
+
+        .main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+        .course-info h1 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--text); }
+        .course-info p { color: var(--text-light); max-width: 600px; }
+        
+        .session-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        .session-card { background: white; border: 1px solid var(--border); border-radius: 0.75rem; overflow: hidden; }
+        .session-header { background: #f8fafc; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .session-title { font-weight: 600; font-size: 1.1rem; color: var(--text); }
+        .session-body { padding: 1.5rem; }
+        
+        .content-section { margin-bottom: 1.5rem; }
+        .content-section:last-child { margin-bottom: 0; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .content-header h4 { font-size: 0.95rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .item-list { list-style: none; border: 1px solid var(--border); border-radius: 0.5rem; overflow: hidden; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); background: white; }
+        .item-row:last-child { border-bottom: none; }
+        .item-row:hover { background: #f9fafb; }
+        .item-info { display: flex; align-items: center; gap: 0.75rem; }
+        .item-icon { color: var(--text-light); }
+        
+        .add-form { background: #f0fdf4; padding: 1rem; border-radius: 0.5rem; margin-top: 0.75rem; border: 1px solid #bbf7d0; display: none; }
+        .add-form.active { display: block; }
+        
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
+        .form-control { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; font-size: 0.9rem; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+        .alert { padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+        .alert-success { background-color: #d1fae5; color: #065f46; }
+        .alert-error { background-color: #fee2e2; color: #991b1b; }
+        
+        .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: var(--secondary); color: white; }
+        .badge-video { background: #3b82f6; }
+        .badge-quiz { background: #f59e0b; }
+        .badge-assignment { background: #8b5cf6; }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
+                <nav>
+                    <a href="/" th:text="#{nav.home}">Home</a>
+                    <a href="/instructor/courses" class="btn btn-secondary" style="background: #f3f4f6;">My Courses</a>
+                    <a href="/instructor/dashboard" th:text="#{nav.instructorDashboard}">Dashboard</a>
+                </nav>
+                <div class="nav-auth">
+                    <div th:if="${user != null}" class="user-menu">
+                        <button type="button" class="user-menu-button">
+                            <span th:text="${user.fullName}">User</span>
+                        </button>
+                        <div class="user-menu-dropdown">
+                            <a href="/logout" class="user-menu-item" style="color: #b91c1c;" th:text="#{nav.logout}">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="header-section">
+            <div class="course-info">
+                <a href="/instructor/courses" style="text-decoration: none; color: var(--text-light); font-size: 0.9rem; display: inline-block; margin-bottom: 0.5rem;">&#8592; Back to Courses</a>
+                <h1 th:text="${course.title}">Course Title</h1>
+                <p th:text="${course.description}">Course Description</p>
+                <div style="margin-top: 1rem;">
+                    <span class="badge" th:if="${course.active}" style="background: #10b981;">Active</span>
+                    <span class="badge" th:unless="${course.active}" style="background: #6b7280;">Pending Approval</span>
+                </div>
+            </div>
+            <!-- Future: Add Edit Course Details Button -->
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <div class="session-list">
+            <!-- Loop through Sessions -->
+            <div th:each="courseSession : ${course.sessions}" class="session-card">
+                <div class="session-header">
+                    <div>
+                        <span style="color: var(--text-light); font-size: 0.85rem; text-transform: uppercase;">Session</span>
+                        <div class="session-title">
+                            <span th:text="${courseSession.title}">Introduction</span>
+                            <a th:href="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/edit'}" class="btn btn-sm btn-secondary" style="margin-left: 0.5rem; font-weight: normal;">Edit</a>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);" th:text="${courseSession.description}"></div>
+                    </div>
+                    <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/delete'}" method="post" onsubmit="return confirm('Are you sure? All videos, quizzes and assignments in this session will be deleted.');">
+                        <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                        <button type="submit" class="btn btn-sm btn-danger">Delete Session</button>
+                    </form>
+                </div>
+                
+                <div class="session-body">
+                    <!-- Videos Section -->
+                    <div class="content-section">
+                        <div class="content-header">
+                            <h4>Videos</h4>
+                            <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-video-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">+ Add Video</button>
+                        </div>
+                        
+                        <ul class="item-list" th:if="${courseSession.videos != null and !courseSession.videos.isEmpty()}">
+                            <li th:each="video : ${courseSession.videos}" class="item-row">
+                                <div class="item-info">
+                                    <span class="badge badge-video">Video</span>
+                                    <span th:text="${video.title}">Video Title</span>
+                                    <span style="color: var(--text-light); font-size: 0.85rem;" th:text="'(' + ${video.duration} + ' min)'"></span>
+                                    <a th:href="@{'/instructor/videos/' + ${video.videoId} + '/edit'}" style="font-size: 0.85rem; color: var(--primary);">Edit</a>
+                                </div>
+                                <form th:action="@{'/instructor/videos/' + ${video.videoId} + '/delete'}" method="post" onsubmit="return confirm('Delete this video?');">
+                                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.1rem 0.5rem;">&#215;</button>
+                                </form>
+                            </li>
+                        </ul>
+                        
+                        <!-- Add Video Form -->
+                        <div th:id="'add-video-' + ${courseSession.sessionId}" class="add-form">
+                            <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/videos'}" method="post">
+                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                <div class="form-group">
+                                    <label>Video Title</label>
+                                    <input type="text" name="title" class="form-control" required />
+                                </div>
+                                <div class="form-group">
+                                    <label>Video URL (Embed Link)</label>
+                                    <input type="text" name="videoUrl" class="form-control" required placeholder="https://..." />
+                                </div>
+                                <div class="form-group">
+                                    <label>Duration (minutes)</label>
+                                    <input type="number" name="duration" class="form-control" required min="1" />
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-video-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">Cancel</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">Save Video</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Quizzes Section -->
+                    <div class="content-section">
+                        <div class="content-header">
+                            <h4>Quizzes</h4>
+                            <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-quiz-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">+ Add Quiz</button>
+                        </div>
+                        
+                        <ul class="item-list" th:if="${courseSession.quizzes != null and !courseSession.quizzes.isEmpty()}">
+                            <li th:each="quiz : ${courseSession.quizzes}" class="item-row">
+                                <div class="item-info">
+                                    <span class="badge badge-quiz">Quiz</span>
+                                    <span th:text="${quiz.title}">Quiz Title</span>
+                                    <a th:href="@{'/instructor/quizzes/' + ${quiz.quizId} + '/edit'}" style="font-size: 0.85rem; color: var(--primary);">Edit</a>
+                                </div>
+                                <form th:action="@{'/instructor/quizzes/' + ${quiz.quizId} + '/delete'}" method="post" onsubmit="return confirm('Delete this quiz?');">
+                                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.1rem 0.5rem;">&#215;</button>
+                                </form>
+                            </li>
+                        </ul>
+                        
+                        <!-- Add Quiz Form -->
+                        <div th:id="'add-quiz-' + ${courseSession.sessionId}" class="add-form">
+                            <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/quizzes'}" method="post">
+                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                <div class="form-group">
+                                    <label>Quiz Title</label>
+                                    <input type="text" name="title" class="form-control" required />
+                                </div>
+                                <!-- Basic quiz info only for now -->
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-quiz-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">Cancel</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">Save Quiz</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Assignments Section -->
+                    <div class="content-section">
+                        <div class="content-header">
+                            <h4>Assignments</h4>
+                            <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-assignment-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">+ Add Assignment</button>
+                        </div>
+                        
+                        <ul class="item-list" th:if="${courseSession.assignments != null and !courseSession.assignments.isEmpty()}">
+                            <li th:each="assign : ${courseSession.assignments}" class="item-row">
+                                <div class="item-info">
+                                    <span class="badge badge-assignment">Assign</span>
+                                    <span th:text="${assign.title}">Assignment Title</span>
+                                    <a th:href="@{'/instructor/assignments/' + ${assign.assignmentId} + '/edit'}" style="font-size: 0.85rem; color: var(--primary);">Edit</a>
+                                </div>
+                                <form th:action="@{'/instructor/assignments/' + ${assign.assignmentId} + '/delete'}" method="post" onsubmit="return confirm('Delete this assignment?');">
+                                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.1rem 0.5rem;">&#215;</button>
+                                </form>
+                            </li>
+                        </ul>
+                        
+                        <!-- Add Assignment Form -->
+                        <div th:id="'add-assignment-' + ${courseSession.sessionId}" class="add-form">
+                            <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/assignments'}" method="post">
+                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                <div class="form-group">
+                                    <label>Assignment Title</label>
+                                    <input type="text" name="title" class="form-control" required />
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea name="description" class="form-control" rows="2"></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-assignment-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">Cancel</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">Save Assignment</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Session Card -->
+            <div class="card" style="border: 2px dashed var(--border); background: transparent; text-align: center;">
+                <button type="button" class="btn btn-secondary" onclick="toggleForm('add-session-form')">+ Add New Session</button>
+                
+                <div id="add-session-form" class="add-form" style="text-align: left; max-width: 600px; margin: 1rem auto 0;">
+                    <form th:action="@{'/instructor/courses/' + ${course.courseId} + '/sessions'}" method="post">
+                        <div class="form-group">
+                            <label>Session Title</label>
+                            <input type="text" name="title" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea name="description" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Order</label>
+                            <input type="number" name="sessionOrder" class="form-control" value="1" required />
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="toggleForm('add-session-form')">Cancel</button>
+                            <button type="submit" class="btn btn-sm btn-primary">Create Session</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function toggleForm(id) {
+            const form = document.getElementById(id);
+            if (form) {
+                if (form.style.display === 'block') {
+                    form.style.display = 'none';
+                } else {
+                    form.style.display = 'block';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

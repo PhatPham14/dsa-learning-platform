@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Content - Instructor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
+        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        nav { display: flex; gap: 2rem; align-items: center; }
+        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
+        
+        .main { max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 0.75rem; padding: 2rem; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        h1 { margin-bottom: 1.5rem; font-size: 1.5rem; text-transform: capitalize; }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; }
+        
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; cursor: pointer; text-decoration: none; display: inline-block; font-weight: 500; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; text-align: center; }
+        .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); width: 100%; text-align: center; margin-top: 0.75rem; }
+        
+        footer { text-align: center; padding: 2rem; margin-top: 3rem; color: var(--text-light); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
+                <nav>
+                    <a href="/instructor/dashboard">Dashboard</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="card">
+            <h1 th:text="'Edit ' + ${#strings.capitalize(itemType)}">Edit Item</h1>
+            
+            <!-- Session Form -->
+            <form th:if="${itemType == 'session'}" th:action="@{'/instructor/sessions/' + ${item.sessionId} + '/edit'}" method="post">
+                <div class="form-group">
+                    <label>Session Title</label>
+                    <input type="text" name="title" class="form-control" th:value="${item.title}" required />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="3" th:text="${item.description}"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Order</label>
+                    <input type="number" name="sessionOrder" class="form-control" th:value="${item.sessionOrder}" required />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+
+            <!-- Video Form -->
+            <form th:if="${itemType == 'video'}" th:action="@{'/instructor/videos/' + ${item.videoId} + '/edit'}" method="post">
+                <div class="form-group">
+                    <label>Video Title</label>
+                    <input type="text" name="title" class="form-control" th:value="${item.title}" required />
+                </div>
+                <div class="form-group">
+                    <label>Video URL</label>
+                    <input type="text" name="videoUrl" class="form-control" th:value="${item.videoUrl}" required />
+                </div>
+                <div class="form-group">
+                    <label>Duration (minutes)</label>
+                    <input type="number" name="duration" class="form-control" th:value="${item.duration}" required min="1" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+
+            <!-- Quiz Form -->
+            <form th:if="${itemType == 'quiz'}" th:action="@{'/instructor/quizzes/' + ${item.quizId} + '/edit'}" method="post">
+                <div class="form-group">
+                    <label>Quiz Title</label>
+                    <input type="text" name="title" class="form-control" th:value="${item.title}" required />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+
+            <!-- Assignment Form -->
+            <form th:if="${itemType == 'assignment'}" th:action="@{'/instructor/assignments/' + ${item.assignmentId} + '/edit'}" method="post">
+                <div class="form-group">
+                    <label>Assignment Title</label>
+                    <input type="text" name="title" class="form-control" th:value="${item.title}" required />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="4" th:text="${item.description}"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+
+            <a th:href="@{'/instructor/courses/' + ${courseId} + '/edit'}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DSA Learning Platform</p>
+    </footer>
+</body>
+</html>

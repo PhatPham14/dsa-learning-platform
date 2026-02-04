@@ -8,8 +8,10 @@ import com.edu.dsalearningplatform.repository.EnrollmentRepository;
 import com.edu.dsalearningplatform.repository.UserRepository;
 import com.edu.dsalearningplatform.service.EnrollmentService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class EnrollmentServiceImpl implements EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;

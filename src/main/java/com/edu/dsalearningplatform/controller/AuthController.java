@@ -68,7 +68,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request) {
-        UserRole role = UserRole.valueOf("CUSTOMER");
+        UserRole role = UserRole.STUDENT;
         userService.registerUser(
                 request.getFullName(),
                 request.getEmail(),

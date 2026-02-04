@@ -141,10 +141,10 @@ public class User {
     }
 
     public boolean isActive() {
-        return isActive;
+        return Boolean.TRUE.equals(isActive);
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         isActive = active;
     }
 }

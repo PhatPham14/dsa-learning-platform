@@ -72,6 +72,7 @@ public class ViewController {
                         User tempUser = new User();
                         tempUser.setEmail(username);
                         tempUser.setFullName(username);
+                        tempUser.setRole(UserRole.STUDENT);
                         return tempUser;
                     });
         }
@@ -94,9 +95,28 @@ public class ViewController {
         User user = getCurrentUser(request);
         if (user != null) {
             model.addAttribute("user", user);
+            // Get enrolled courses for the current user
+            var enrollments = enrollmentService.getEnrollmentsByStudent(user.getUserId());
+            Set<Long> enrolledCourseIds = enrollments.stream()
+                    .map(e -> e.getCourse().getCourseId())
+                    .collect(Collectors.toSet());
+            model.addAttribute("enrolledCourseIds", enrolledCourseIds);
         }
         // Lấy danh sách khóa học từ service
         List<com.edu.dsalearningplatform.entity.Course> courses = courseService.getAllCourses();
+        
+        // DEBUG: Print image data status
+        System.out.println("=== DEBUGGING IMAGE DATA ===");
+        for (com.edu.dsalearningplatform.entity.Course c : courses) {
+            String img = c.getImageBase64();
+            String status = (img == null) ? "NULL" : "LENGTH=" + img.length();
+            String prefix = (img != null && img.length() > 20) ? img.substring(0, 20) : img;
+            System.out.println("Course ID: " + c.getCourseId() + 
+                               ", Title: " + c.getTitle() + 
+                               ", ImageData: " + status + 
+                               ", Prefix: " + prefix);
+        }
+        System.out.println("============================");
 
         // Nếu không phải Admin, chỉ hiển thị khóa học đang active
         if (user == null || user.getRole() != UserRole.ADMIN) {
@@ -344,6 +364,45 @@ public class ViewController {
         model.addAttribute("enrollments", enrollments);
         
         return "myCourses";
+    }
+
+    @GetMapping("/learn")
+    public String learn(@RequestParam Long courseId, HttpServletRequest request, Model model, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(request);
+        if (user == null) {
+            return "redirect:/login";
+        }
+        
+        // Check enrollment
+        if (!enrollmentService.isEnrolled(user.getUserId(), courseId)) {
+            // Also allow instructor of the course
+            var course = courseService.getCourseById(courseId);
+            if (course != null && course.getInstructor().getUserId().equals(user.getUserId())) {
+                // Instructor can view their own course
+            } else {
+                redirectAttributes.addFlashAttribute("message", "Bạn chưa đăng ký khóa học này.");
+                return "redirect:/courses";
+            }
+        }
+
+        var course = courseService.getCourseById(courseId);
+        if (course == null) {
+             return "redirect:/courses";
+        }
+
+        // Force initialize sessions and videos to prevent LazyInitializationException in view
+        if (course.getSessions() != null) {
+            course.getSessions().size(); // Initialize sessions
+            for (var session : course.getSessions()) {
+                if (session.getVideos() != null) session.getVideos().size(); // Initialize videos
+                if (session.getQuizzes() != null) session.getQuizzes().size(); // Initialize quizzes
+                if (session.getAssignments() != null) session.getAssignments().size(); // Initialize assignments
+            }
+        }
+        
+        model.addAttribute("user", user);
+        model.addAttribute("course", course);
+        return "learning";
     }
 
     @GetMapping("/language")

@@ -2,9 +2,11 @@ package com.edu.dsalearningplatform.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
+import java.sql.Types;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,14 +38,17 @@ public class Course {
     private LocalDateTime createdAt;
 
     @Column(name = "is_published")
-    private boolean isPublished = false;
+    private Boolean isPublished = false;
 
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Lob
-    @Column(name = "image_data", columnDefinition = "nvarchar(max)")
-    private String imageData;
+    @Nationalized
+    @Column(name = "image_base64", columnDefinition = "nvarchar(max)")
+    private String imageBase64;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<Session> sessions = new java.util.ArrayList<>();
 
     public Course() {
     }
@@ -51,6 +56,7 @@ public class Course {
     public Long getCourseId() {
         return courseId;
     }
+
 
     public void setCourseId(Long courseId) {
         this.courseId = courseId;
@@ -96,11 +102,11 @@ public class Course {
         this.createdAt = createdAt;
     }
 
-    public boolean isPublished() {
-        return isPublished;
+    public Boolean isPublished() {
+        return Boolean.TRUE.equals(isPublished);
     }
 
-    public void setPublished(boolean published) {
+    public void setPublished(Boolean published) {
         isPublished = published;
     }
 
@@ -108,15 +114,40 @@ public class Course {
         return Boolean.TRUE.equals(this.isActive);
     }
 
-    public void setActive(boolean isActive) {
+    public void setActive(Boolean isActive) {
         this.isActive = isActive;
     }
 
-    public String getImageData() {
-        return imageData;
+    public String getImageBase64() {
+        return imageBase64;
     }
 
-    public void setImageData(String imageData) {
-        this.imageData = imageData;
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
+    }
+
+    public java.util.List<Session> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(java.util.List<Session> sessions) {
+        this.sessions = sessions;
+    }
+
+    public String getDisplayImageUrl() {
+        if (this.imageBase64 == null || this.imageBase64.trim().isEmpty()) {
+            return "/images/default-course.svg";
+        }
+        String data = this.imageBase64.trim();
+        // Check if it's a URL or path
+        if (data.startsWith("http") || data.startsWith("/")) {
+            return data;
+        }
+        // Check if it's already a Data URI
+        if (data.startsWith("data:")) {
+            return data;
+        }
+        // Assume raw base64 and add prefix
+        return "data:image/jpeg;base64," + data;
     }
 }

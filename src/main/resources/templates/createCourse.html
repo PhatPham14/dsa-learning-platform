@@ -180,7 +180,7 @@
                         successDiv.textContent = /*[[#{createCourse.courseCreationSuccess}]]*/ "Course Created Successfully!";
                         successDiv.style.display = 'block';
                         setTimeout(() => {
-                            window.location.href = '/courses'; // Redirect to courses page
+                            window.location.href = '/instructor/courses'; // Redirect to instructor courses page
                         }, 1500);
                     })
                     .catch(err => {

@@ -287,9 +287,9 @@
                         </button>
                         <div class="user-menu-dropdown">
                             <a href="/profile" class="user-menu-item" th:text="#{nav.profile}">Profile</a>
-                            <a href="/my-courses" class="user-menu-item" th:text="#{nav.myCourses}" th:if="${user.role.name() != 'ADMIN'}">My Courses</a>
+                            <a href="/my-courses" class="user-menu-item" th:text="#{nav.myCourses}" th:if="${user.role != null and user.role.name() != 'ADMIN'}">My Courses</a>
                             <a href="/dashboard" class="user-menu-item" th:text="#{nav.dashboard}">Dashboard</a>
-                            <a href="/instructor/dashboard" th:if="${user != null and user.role.name() == 'INSTRUCTOR'}" class="user-menu-item" th:text="#{nav.instructorDashboard}">Instructor Dashboard</a>
+                            <a href="/instructor/dashboard" th:if="${user != null and user.role != null and user.role.name() == 'INSTRUCTOR'}" class="user-menu-item" th:text="#{nav.instructorDashboard}">Instructor Dashboard</a>
                             <div class="user-menu-separator"></div>
                             <a href="/logout" class="user-menu-item" style="color: #b91c1c;" th:text="#{nav.logout}">Logout</a>
                         </div>
@@ -317,8 +317,7 @@
             <div class="grid" th:if="${!#lists.isEmpty(featuredCourses)}">
                 <div class="card" th:each="course : ${featuredCourses}" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
                     <div class="course-image" style="height: 160px; background-color: #f3f4f6; border-bottom: 1px solid var(--border); overflow: hidden;">
-                                <img th:if="${course.imageData != null and !#strings.isEmpty(course.imageData)}" th:src="${course.imageData}" alt="Course Image" style="width: 100%; height: 100%; object-fit: cover;">
-                                <img th:if="${course.imageData == null or #strings.isEmpty(course.imageData)}" th:src="@{/images/default-course.svg}" alt="Default Course Image" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img th:src="${course.displayImageUrl}" alt="Course Image" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                     <div style="padding: 1.5rem; flex: 1; display: flex; flex-direction: column;">
                         <h3 th:text="${course.title}" style="margin-bottom: 0.5rem; color: var(--primary);">Course title</h3>

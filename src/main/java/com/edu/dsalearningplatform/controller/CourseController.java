@@ -18,6 +18,8 @@ public class CourseController {
 
     @PostMapping
     public ResponseEntity<?> createCourse(@RequestBody CreateCourseRequest req) {
+        System.out.println("Received create course request: " + req.title);
+        System.out.println("Image base64 length: " + (req.imageBase64 != null ? req.imageBase64.length() : "null"));
         Course saved = courseService.createCourse(req);
         return ResponseEntity.ok(saved);
     }

@@ -53,6 +53,11 @@
                     <a href="/" th:text="#{nav.home}">Home</a>
                     <a href="/courses" th:text="#{nav.courses}">Courses</a>
                     <a href="/create" class="btn btn-primary" style="color: white;" th:text="#{nav.create}">Create Course</a>
+                    <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                        <a href="/language?lang=en" style="font-weight: bold; text-decoration: none; color: var(--primary);">EN</a>
+                        <span style="color: var(--border);">|</span>
+                        <a href="/language?lang=vi" style="font-weight: bold; text-decoration: none; color: var(--primary);">VI</a>
+                    </div>
                 </nav>
                 <div class="nav-auth">
                     <div th:if="${user != null}" class="user-menu">
@@ -75,7 +80,10 @@
     </header>
 
     <main class="main">
-        <h1>Instructor Dashboard</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h1>Instructor Dashboard</h1>
+            <a href="/instructor/courses" class="btn btn-primary">Manage My Courses</a>
+        </div>
         
         <div class="grid">
             <div class="stat-card">
