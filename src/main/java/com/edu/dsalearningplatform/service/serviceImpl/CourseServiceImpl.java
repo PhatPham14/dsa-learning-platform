@@ -45,6 +45,64 @@ public class CourseServiceImpl implements CourseService {
         }
         course.setActive(false); // Default to inactive, waiting for admin approval
         course.setPublished(false);
+
+        if (req.sessions != null) {
+            for (CreateCourseRequest.CreateSessionRequest sessionReq : req.sessions) {
+                if (sessionReq == null || sessionReq.title == null || sessionReq.title.isBlank()) {
+                    continue;
+                }
+
+                Session session = new Session();
+                session.setCourse(course);
+                session.setTitle(sessionReq.title);
+                session.setDescription(sessionReq.description);
+                session.setSessionOrder(sessionReq.sessionOrder);
+
+                if (sessionReq.videos != null) {
+                    for (CreateCourseRequest.CreateVideoRequest videoReq : sessionReq.videos) {
+                        if (videoReq == null || videoReq.title == null || videoReq.title.isBlank()
+                                || videoReq.videoUrl == null || videoReq.videoUrl.isBlank()) {
+                            continue;
+                        }
+                        Video video = new Video();
+                        video.setSession(session);
+                        video.setTitle(videoReq.title);
+                        video.setVideoUrl(videoReq.videoUrl);
+                        video.setDuration(videoReq.duration);
+                        session.getVideos().add(video);
+                    }
+                }
+
+                if (sessionReq.quizzes != null) {
+                    for (CreateCourseRequest.CreateQuizRequest quizReq : sessionReq.quizzes) {
+                        if (quizReq == null || quizReq.title == null || quizReq.title.isBlank()) {
+                            continue;
+                        }
+                        Quiz quiz = new Quiz();
+                        quiz.setSession(session);
+                        quiz.setTitle(quizReq.title);
+                        quiz.setDescription(quizReq.description);
+                        session.getQuizzes().add(quiz);
+                    }
+                }
+
+                if (sessionReq.assignments != null) {
+                    for (CreateCourseRequest.CreateAssignmentRequest assignmentReq : sessionReq.assignments) {
+                        if (assignmentReq == null || assignmentReq.title == null || assignmentReq.title.isBlank()) {
+                            continue;
+                        }
+                        Assignment assignment = new Assignment();
+                        assignment.setSession(session);
+                        assignment.setTitle(assignmentReq.title);
+                        assignment.setDescription(assignmentReq.description);
+                        session.getAssignments().add(assignment);
+                    }
+                }
+
+                course.getSessions().add(session);
+            }
+        }
+
         return courseRepository.save(course);
     }
 
@@ -83,6 +141,11 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
         course.setActive(!course.isActive());
         courseRepository.save(course);
+    }
+
+    @Override
+    public void deleteCourse(Long courseId) {
+        courseRepository.deleteById(courseId);
     }
 
     // Session management

@@ -1,147 +1,125 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{login.title}">Login</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
-        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
-        nav { display: flex; gap: 2rem; align-items: center; }
-        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
-        .nav-auth { display: flex; gap: 1rem; align-items: center; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.95rem; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-        .main { max-width: 400px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 2rem; border: 1px solid var(--border); }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.95rem; }
-        input:focus { outline: none; border-color: var(--primary); }
-        h2 { text-align: center; margin-bottom: 0.5rem; }
-        .form-subtitle { text-align: center; color: var(--text-light); margin-bottom: 1.5rem; }
-        .signup-link { text-align: center; margin-top: 1rem; }
-        .signup-link a { color: var(--primary); text-decoration: none; font-weight: 600; }
-        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
-    </style>
+    <title th:text="#{login.title}">Đăng nhập - DSA Platform</title>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="nav-wrapper">
-                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
-                <nav>
-                    <a href="/" th:text="#{nav.home}">Home</a>
-                    <a href="/courses" th:text="#{nav.courses}">Courses</a>
-                </nav>
-                <div class="nav-auth">
-                    <form th:action="@{/language}" method="post" style="margin: 0;">
-                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">🌍 English</button>
-                        <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">🌍 Tiếng Việt</button>
-                    </form>
+    <div th:fragment="content" class="min-h-[calc(100vh-64px-300px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-xl border border-gray-100">
+            <div>
+                <div class="mx-auto h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary text-2xl mb-6">
+                    <i class="fas fa-lock"></i>
                 </div>
+                <h2 class="text-center text-3xl font-extrabold text-gray-900" th:text="#{login.title}">Chào mừng trở lại</h2>
+                <p class="mt-2 text-center text-sm text-gray-600" th:text="#{login.subtitle}">
+                    Vui lòng đăng nhập để tiếp tục học tập
+                </p>
             </div>
-        </div>
-    </header>
-
-    <main class="main">
-        <div class="card">
-            <h2 th:text="#{login.title}">Welcome Back</h2>
-            <p class="form-subtitle" th:text="#{login.subtitle}">Sign in to your account</p>
-
-            <form id="login-form">
-                <div id="login-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
-                <div class="form-group">
-                    <label for="email" th:text="#{login.email}">Email Address</label>
-                    <input type="email" id="email" name="email" th:placeholder="#{login.emailPlaceholder}" required>
+            
+            <form id="login-form" class="mt-8 space-y-6">
+                <div id="login-error" class="hidden p-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-100"></div>
+                
+                <div class="rounded-md space-y-4">
+                    <div class="form-group">
+                        <label for="email" class="label-field" th:text="#{login.email}">Email hoặc Số điện thoại</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input id="email" name="email" type="text" required class="input-field pl-10" th:placeholder="#{login.emailPlaceholder}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="password" class="label-field" th:text="#{login.password}">Mật khẩu</label>
+                            <a href="#" class="text-xs font-semibold text-primary hover:text-primary-dark">Quên mật khẩu?</a>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-key text-gray-400"></i>
+                            </div>
+                            <input id="password" name="password" type="password" required class="input-field pl-10" th:placeholder="#{login.passwordPlaceholder}">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="password" th:text="#{login.password}">Password</label>
-                    <input type="password" id="password" name="password" th:placeholder="#{login.passwordPlaceholder}" required>
+
+                <div class="flex items-center">
+                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label for="remember-me" class="ml-2 block text-sm text-gray-700">Ghi nhớ đăng nhập</label>
                 </div>
-                <button type="submit" class="btn btn-primary" id="login-submit" th:text="#{login.signin}">Sign In</button>
+
+                <div>
+                    <button type="submit" id="login-submit" class="btn btn-primary w-full py-3 shadow-lg shadow-primary/20">
+                        <span th:text="#{login.signin}">Đăng nhập</span>
+                        <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                    </button>
+                </div>
             </form>
 
-            <div class="signup-link">
-                <p th:text="#{login.noAccount}">Don't have an account?</p>
-                <a href="/register" th:text="#{login.register}">Register here</a>
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-600">
+                    <span th:text="#{login.noAccount}">Chưa có tài khoản?</span>
+                    <a href="/register" class="font-bold text-primary hover:text-primary-dark transition-colors" th:text="#{login.register}">Đăng ký ngay</a>
+                </p>
             </div>
         </div>
-    </main>
 
-    <footer>
-        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
-    </footer>
+        <script>
+            (function() {
+                const form = document.getElementById('login-form');
+                const submitBtn = document.getElementById('login-submit');
+                const errorBox = document.getElementById('login-error');
 
-    <script>
-        (function() {
-            const form = document.getElementById('login-form');
-            const submitBtn = document.getElementById('login-submit');
-            const errorBox = document.getElementById('login-error');
+                if (!form) return;
 
-            if (!form) return;
+                form.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    errorBox.classList.add('hidden');
+                    errorBox.textContent = '';
 
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-                errorBox.style.display = 'none';
-                errorBox.textContent = '';
+                    const email = document.getElementById('email').value.trim();
+                    const password = document.getElementById('password').value.trim();
 
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value.trim();
-
-                if (!email || !password) {
-                    errorBox.textContent = 'Vui lòng nhập đầy đủ email và mật khẩu.';
-                    errorBox.style.display = 'block';
-                    return;
-                }
-
-                submitBtn.disabled = true;
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = 'Đang đăng nhập...';
-
-                try {
-                    const res = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            emailOrPhone: email,
-                            password: password
-                        })
-                    });
-
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        errorBox.textContent = err.error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
-                        errorBox.style.display = 'block';
-                    } else {
-                        const data = await res.json();
-                        // Lưu accessToken vào cookie để server-side Thymeleaf đọc và hiển thị user
-                        const token = data.accessToken;
-                        if (token) {
-                            document.cookie = "accessToken=" + token + ";path=/;";
-                        }
-                        // Điều hướng về trang chủ sau khi đăng nhập thành công
-                        window.location.href = "/";
+                    if (!email || !password) {
+                        errorBox.textContent = 'Vui lòng nhập đầy đủ thông tin.';
+                        errorBox.classList.remove('hidden');
+                        return;
                     }
-                } catch (err) {
-                    errorBox.textContent = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
-                    errorBox.style.display = 'block';
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
-                }
-            });
-        })();
-    </script>
+
+                    submitBtn.disabled = true;
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Đang xử lý...';
+
+                    try {
+                        const res = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ emailOrPhone: email, password: password })
+                        });
+
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            errorBox.textContent = err.error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+                            errorBox.classList.remove('hidden');
+                        } else {
+                            const data = await res.json();
+                            const token = data.accessToken;
+                            if (token) {
+                                document.cookie = "accessToken=" + token + ";path=/;max-age=86400;";
+                            }
+                            window.location.href = "/";
+                        }
+                    } catch (err) {
+                        errorBox.textContent = 'Có lỗi xảy ra kết nối đến hệ thống.';
+                        errorBox.classList.remove('hidden');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                });
+            })();
+        </script>
+    </div>
 </body>
 </html>

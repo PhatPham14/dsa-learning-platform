@@ -21,6 +21,7 @@ public interface UserService {
                                    String roleStr, Boolean isActive,
                                    int pageNum, int pageSize, String sortStr);
     void updateUserId(Integer id, UserUpdateRequest userUpdateRequest);
+    void updateUserRole(Integer id, UserRole role);
     void updateUserStatus(Integer id, boolean isActive);
     void changePassword(Integer id, String oldPassword, String newPassword);
 

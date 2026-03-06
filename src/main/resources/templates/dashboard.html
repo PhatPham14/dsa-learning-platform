@@ -1,82 +1,112 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{dashboard.title}">Dashboard</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
-        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
-        nav { display: flex; gap: 2rem; }
-        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
-        .nav-auth { display: flex; gap: 1rem; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
-        .btn-danger { background: #ef4444; color: white; }
-        .main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 2rem; border-radius: 0.75rem; text-align: center; }
-        .stat-card h3 { font-size: 2rem; margin-bottom: 0.5rem; }
-        .stat-card p { color: rgba(255,255,255,0.9); }
-        h1 { font-size: 2rem; margin-bottom: 1rem; }
-        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
-    </style>
+    <title th:text="#{dashboard.title}">Bảng điều khiển - DSA Platform</title>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="nav-wrapper">
-                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
-                <nav>
-                    <a href="/" th:text="#{nav.home}">Home</a>
-                    <a href="/courses" th:text="#{nav.courses}">Courses</a>
-                    <a href="/submit" th:text="#{nav.submit}">Submit</a>
-                    <a href="/dashboard" th:text="#{nav.dashboard}">Dashboard</a>
-                </nav>
-                <div class="nav-auth">
-                    <form th:action="@{/language}" method="post" style="margin: 0;">
-                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">🌍 English</button>
-                        <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">🌍 Tiếng Việt</button>
-                    </form>
-                    <span th:text="${user.fullName}" th:if="${user}"></span>
-                    <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
+    <div th:fragment="content">
+        <!-- Dashboard Header -->
+        <div class="bg-white border-b border-gray-200 mb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" th:text="#{dashboard.welcomeBack(${user.fullName})}">Chào mừng trở lại!</h1>
+                        <p class="text-gray-500">Hôm nay là một ngày tuyệt vời để tiếp tục học tập.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="/my-courses" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Tiếp tục học
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </header>
 
-    <main class="main">
-        <h1 th:text="#{dashboard.welcomeBack(${user.fullName})}" th:if="${user}">Welcome back!</h1>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <!-- Courses Completed -->
+                <div class="card p-6 border-l-4 border-green-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-green-600">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-gray-900">0</h3>
+                    <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold" th:text="#{dashboard.courses}">Khóa học hoàn thành</p>
+                </div>
 
-        <div class="grid">
-            <div class="stat-card">
-                <h3>0</h3>
-                <p th:text="#{dashboard.courses}">Courses Completed</p>
+                <!-- Total Progress -->
+                <div class="card p-6 border-l-4 border-primary">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-primary/5 rounded-lg flex items-center justify-center text-primary">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-gray-900">0%</h3>
+                    <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold" th:text="#{dashboard.progress}">Tiến độ tổng thể</p>
+                </div>
+
+                <!-- Total Hours -->
+                <div class="card p-6 border-l-4 border-secondary">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 bg-secondary/5 rounded-lg flex items-center justify-center text-secondary">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-gray-900">0</h3>
+                    <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold" th:text="#{dashboard.hours}">Tổng giờ học</p>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>0%</h3>
-                <p th:text="#{dashboard.progress}">Total Progress</p>
-            </div>
-            <div class="stat-card">
-                <h3>0</h3>
-                <p th:text="#{dashboard.hours}">Total Hours</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Recent Activity -->
+                <div class="lg:col-span-2">
+                    <div class="card h-full">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <h2 class="text-lg font-bold text-gray-900" th:text="#{dashboard.recentActivity}">Hoạt động gần đây</h2>
+                            <i class="fas fa-history text-gray-300"></i>
+                        </div>
+                        <div class="p-8 text-center py-20">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                <i class="fas fa-calendar-day text-2xl"></i>
+                            </div>
+                            <p class="text-gray-400 italic">Chưa có hoạt động gần đây. Hãy bắt đầu bài học đầu tiên của bạn!</p>
+                            <a href="/courses" class="btn btn-outline btn-sm mt-6">Khám phá khóa học</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommended or Quick Links -->
+                <div class="lg:col-span-1">
+                    <div class="card h-full">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                            <h2 class="text-lg font-bold text-gray-900">Truy cập nhanh</h2>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <a href="/profile" class="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all group">
+                                <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <span class="font-medium text-gray-700">Hồ sơ cá nhân</span>
+                            </a>
+                            <a href="/my-courses" class="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all group">
+                                <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <span class="font-medium text-gray-700">Khóa học của tôi</span>
+                            </a>
+                            <a href="/submit" class="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all group">
+                                <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                    <i class="fas fa-code"></i>
+                                </div>
+                                <span class="font-medium text-gray-700">Luyện tập Code</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="card">
-            <h2 th:text="#{dashboard.recentActivity}">Recent Activity</h2>
-            <p style="color: var(--text-light);">No recent activity yet. Start learning!</p>
-        </div>
-    </main>
-
-    <footer>
-        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
-    </footer>
+    </div>
 </body>
 </html>

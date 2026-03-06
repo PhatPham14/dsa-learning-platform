@@ -1,36 +1,180 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{profile.title}">Profile</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        .main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid var(--border); }
-        h1 { font-size: 1.75rem; margin-bottom: 1rem; }
-        .field-label { font-weight: 600; margin-top: 0.75rem; color: var(--text-light); }
-        .field-value { margin-top: 0.25rem; }
-        a { color: var(--primary); text-decoration: none; }
-    </style>
+    <title th:text="#{profile.title}">Hồ sơ cá nhân - DSA Platform</title>
 </head>
 <body>
-    <div class="main">
-        <a href="/" style="text-decoration:none; color: var(--primary);">&larr; <span th:text="#{profile.backHome}">Back to Home</span></a>
-        <div class="card" style="margin-top: 1rem;">
-            <h1 th:text="#{profile.header}">Profile Information</h1>
-            <div>
-                <div class="field-label" th:text="#{profile.fullName}">Full Name</div>
-                <div class="field-value" th:text="${user.fullName != null ? user.fullName : #messages.msg('profile.notUpdated')}">User Name</div>
-            </div>
-            <div>
-                <div class="field-label" th:text="#{profile.email}">Email</div>
-                <div class="field-value" th:text="${user.email}">user@example.com</div>
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="bg-white border-b border-gray-200 mb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary text-xl">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" th:text="#{profile.header}">Hồ sơ của bạn</h1>
+                        <p class="text-sm text-gray-500 mt-1">Quản lý thông tin cá nhân và tài khoản.</p>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <div class="card p-8 border-none ring-1 ring-gray-200 shadow-sm">
+                <div th:if="${message}" class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-700 text-sm font-medium" th:text="${message}">
+                    Cập nhật hồ sơ thành công!
+                </div>
+                <div th:if="${error}" class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm font-medium" th:text="${error}">
+                    Cập nhật hồ sơ thất bại.
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                    <!-- Avatar Placeholder -->
+                    <div class="w-32 h-32 rounded-full bg-primary/5 flex items-center justify-center text-primary text-5xl font-bold border-4 border-white shadow-lg ring-1 ring-primary/10">
+                        <span th:text="${user.fullName != null ? #strings.substring(user.fullName, 0, 1) : 'U'}">U</span>
+                    </div>
+
+                    <div id="profileView" class="flex-grow space-y-6 w-full">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]" th:text="#{profile.fullName}">Họ và tên</label>
+                                <p class="text-sm text-gray-700 font-medium" th:text="${user.fullName != null ? user.fullName : 'Chưa cập nhật'}">User Name</p>
+                            </div>
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Vai trò</label>
+                                <div>
+                                    <span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest" th:text="${user.role}">STUDENT</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]" th:text="#{profile.email}">Email</label>
+                                <p class="text-sm text-gray-700 font-medium" th:text="${user.email != null ? user.email : 'Chưa cập nhật'}">user@example.com</p>
+                            </div>
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Số điện thoại</label>
+                                <p class="text-sm text-gray-700 font-medium" th:text="${user.phone != null ? user.phone : 'Chưa cập nhật'}">0123456789</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Ngày sinh</label>
+                                <p class="text-sm text-gray-700 font-medium" th:text="${user.dateOfBirth != null && user.dateOfBirth != '' ? user.dateOfBirth : 'Chưa cập nhật'}">-</p>
+                            </div>
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Giới tính</label>
+                                <p class="text-sm text-gray-700 font-medium" th:text="${user.gender != null && user.gender != '' ? user.gender : 'Chưa cập nhật'}">-</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-field uppercase tracking-wider text-[10px]">Địa chỉ</label>
+                            <p class="text-sm text-gray-700 font-medium" th:text="${user.address != null && user.address != '' ? user.address : 'Chưa cập nhật'}">-</p>
+                        </div>
+
+                        <div class="pt-6 border-t border-gray-100 flex justify-end gap-3">
+                            <button type="button" onclick="showProfileEdit()" class="btn btn-primary btn-sm">Cập nhật thông tin</button>
+                        </div>
+                    </div>
+
+                    <form id="profileEditForm" action="/profile/update" method="post" class="hidden flex-grow space-y-6 w-full">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]" th:text="#{profile.fullName}">Họ và tên</label>
+                                <input name="fullName" type="text" class="input-field" th:value="${user.fullName}" required />
+                            </div>
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Vai trò</label>
+                                <div>
+                                    <span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest" th:text="${user.role}">STUDENT</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]" th:text="#{profile.email}">Email</label>
+                                <input name="email" type="email" class="input-field" th:value="${user.email}" required />
+                            </div>
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Số điện thoại</label>
+                                <input name="phone" type="text" class="input-field" th:value="${user.phone}" required />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Ngày sinh</label>
+                                <input name="dateOfBirth" type="date" class="input-field" th:value="${user.dateOfBirth}" />
+                            </div>
+                            <div>
+                                <label class="label-field uppercase tracking-wider text-[10px]">Giới tính</label>
+                                <select name="gender" class="input-field">
+                                    <option value="" th:selected="${user.gender == null || user.gender == ''}">Chưa cập nhật</option>
+                                    <option value="Male" th:selected="${user.gender == 'Male'}">Nam</option>
+                                    <option value="Female" th:selected="${user.gender == 'Female'}">Nữ</option>
+                                    <option value="Other" th:selected="${user.gender == 'Other'}">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-field uppercase tracking-wider text-[10px]">Địa chỉ</label>
+                            <input name="address" type="text" class="input-field" th:value="${user.address}" placeholder="Nhập địa chỉ" />
+                        </div>
+
+                        <div class="pt-6 border-t border-gray-100 flex justify-end gap-3">
+                            <button type="button" onclick="hideProfileEdit()" class="btn btn-outline btn-sm">Hủy</button>
+                            <button type="submit" class="btn btn-primary btn-sm">Lưu thay đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Stats or Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div class="card p-6 border-none ring-1 ring-gray-100 bg-gray-50/50">
+                    <h3 class="text-sm font-bold text-gray-900 mb-4">Hoạt động</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-gray-500">Tham gia từ:</span>
+                            <span class="font-bold text-gray-900" th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd/MM/yyyy') : '06/03/2026'}">01/01/2026</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-gray-500">Lần cuối đăng nhập:</span>
+                            <span class="font-bold text-gray-900">Vừa xong</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6 border-none ring-1 ring-gray-100 bg-gray-50/50">
+                    <h3 class="text-sm font-bold text-gray-900 mb-4">Tài khoản</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-xs text-green-600 font-bold">
+                            <i class="fas fa-check-circle"></i> Đã xác thực Email
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-green-600 font-bold">
+                            <i class="fas fa-check-circle"></i> Đã xác thực Số điện thoại
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function showProfileEdit() {
+                document.getElementById('profileView').classList.add('hidden');
+                document.getElementById('profileEditForm').classList.remove('hidden');
+            }
+
+            function hideProfileEdit() {
+                document.getElementById('profileEditForm').classList.add('hidden');
+                document.getElementById('profileView').classList.remove('hidden');
+            }
+        </script>
     </div>
 </body>
 </html>
-

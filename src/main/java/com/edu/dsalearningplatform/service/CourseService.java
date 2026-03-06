@@ -31,6 +31,11 @@ public interface CourseService {
      * Thay đổi trạng thái active của khóa học (cho Admin).
      */
     void toggleStatus(Long courseId);
+
+    /**
+     * Xóa khóa học.
+     */
+    void deleteCourse(Long courseId);
     
     // Session management
     Session addSession(Long courseId, Session session);

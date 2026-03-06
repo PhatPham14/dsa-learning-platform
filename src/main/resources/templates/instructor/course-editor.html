@@ -1,314 +1,300 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Course - Instructor</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; --danger: #ef4444; --success: #10b981; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
-        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
-        nav { display: flex; gap: 2rem; align-items: center; }
-        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
-        .nav-auth { display: flex; gap: 1rem; align-items: center; }
-        
-        /* User Menu Styles */
-        .user-menu { position: relative; display: inline-block; }
-        .user-menu-button { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; background: #f3f4f6; border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; }
-        .user-menu-dropdown { position: absolute; right: 0; margin-top: 0.5rem; background: white; border-radius: 0.75rem; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15); min-width: 220px; padding: 0.5rem 0; display: none; z-index: 200; }
-        .user-menu:hover .user-menu-dropdown { display: block; }
-        .user-menu-item { display: block; padding: 0.6rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; }
-        .user-menu-item:hover { background: #f3f4f6; }
-        .user-menu-separator { height: 1px; background: var(--border); margin: 0.25rem 0; }
-
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; text-decoration: none; display: inline-block; font-size: 0.9rem; transition: background-color 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #f3f4f6; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #dc2626; }
-        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
-        .btn-icon { display: inline-flex; align-items: center; gap: 0.25rem; }
-
-        .main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        
-        .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-        .course-info h1 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--text); }
-        .course-info p { color: var(--text-light); max-width: 600px; }
-        
-        .session-list { display: flex; flex-direction: column; gap: 1.5rem; }
-        .session-card { background: white; border: 1px solid var(--border); border-radius: 0.75rem; overflow: hidden; }
-        .session-header { background: #f8fafc; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .session-title { font-weight: 600; font-size: 1.1rem; color: var(--text); }
-        .session-body { padding: 1.5rem; }
-        
-        .content-section { margin-bottom: 1.5rem; }
-        .content-section:last-child { margin-bottom: 0; }
-        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-        .content-header h4 { font-size: 0.95rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; }
-        
-        .item-list { list-style: none; border: 1px solid var(--border); border-radius: 0.5rem; overflow: hidden; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); background: white; }
-        .item-row:last-child { border-bottom: none; }
-        .item-row:hover { background: #f9fafb; }
-        .item-info { display: flex; align-items: center; gap: 0.75rem; }
-        .item-icon { color: var(--text-light); }
-        
-        .add-form { background: #f0fdf4; padding: 1rem; border-radius: 0.5rem; margin-top: 0.75rem; border: 1px solid #bbf7d0; display: none; }
-        .add-form.active { display: block; }
-        
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
-        .form-control { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; font-size: 0.9rem; }
-        .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
-
-        .alert { padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
-        .alert-success { background-color: #d1fae5; color: #065f46; }
-        .alert-error { background-color: #fee2e2; color: #991b1b; }
-        
-        .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: var(--secondary); color: white; }
-        .badge-video { background: #3b82f6; }
-        .badge-quiz { background: #f59e0b; }
-        .badge-assignment { background: #8b5cf6; }
-
-    </style>
+    <title>Chỉnh sửa khóa học - DSA Platform</title>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="nav-wrapper">
-                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
-                <nav>
-                    <a href="/" th:text="#{nav.home}">Home</a>
-                    <a href="/instructor/courses" class="btn btn-secondary" style="background: #f3f4f6;">My Courses</a>
-                    <a href="/instructor/dashboard" th:text="#{nav.instructorDashboard}">Dashboard</a>
-                </nav>
-                <div class="nav-auth">
-                    <div th:if="${user != null}" class="user-menu">
-                        <button type="button" class="user-menu-button">
-                            <span th:text="${user.fullName}">User</span>
+    <div th:fragment="content">
+        <!-- Editor Header -->
+        <div class="bg-white border-b border-gray-200 mb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <a href="/instructor/courses" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900" th:text="${course.title}">Tiêu đề khóa học</h1>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider" 
+                                      th:classappend="${course.isActive} ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
+                                      th:text="${course.isActive} ? 'Đang hiển thị' : 'Chờ phê duyệt'">Trạng thái</span>
+                                <span class="text-xs text-gray-400">•</span>
+                                <span class="text-xs text-gray-400" th:text="${#lists.size(course.sessions)} + ' Chương học'">0 Chương học</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="btn btn-outline">
+                            <i class="fas fa-cog"></i> Cài đặt khóa học
                         </button>
-                        <div class="user-menu-dropdown">
-                            <a href="/logout" class="user-menu-item" style="color: #b91c1c;" th:text="#{nav.logout}">Logout</a>
-                        </div>
+                        <button class="btn btn-primary" onclick="toggleForm('add-session-form')">
+                            <i class="fas fa-plus"></i> Thêm chương mới
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </header>
 
-    <main class="main">
-        <div class="header-section">
-            <div class="course-info">
-                <a href="/instructor/courses" style="text-decoration: none; color: var(--text-light); font-size: 0.9rem; display: inline-block; margin-bottom: 0.5rem;">&#8592; Back to Courses</a>
-                <h1 th:text="${course.title}">Course Title</h1>
-                <p th:text="${course.description}">Course Description</p>
-                <div style="margin-top: 1rem;">
-                    <span class="badge" th:if="${course.active}" style="background: #10b981;">Active</span>
-                    <span class="badge" th:unless="${course.active}" style="background: #6b7280;">Pending Approval</span>
-                </div>
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <!-- Notifications -->
+            <div th:if="${success}" class="mb-6 p-4 rounded-xl bg-green-50 border border-green-100 text-green-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}">Thành công!</span>
             </div>
-            <!-- Future: Add Edit Course Details Button -->
-        </div>
-
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
-
-        <div class="session-list">
-            <!-- Loop through Sessions -->
-            <div th:each="courseSession : ${course.sessions}" class="session-card">
-                <div class="session-header">
-                    <div>
-                        <span style="color: var(--text-light); font-size: 0.85rem; text-transform: uppercase;">Session</span>
-                        <div class="session-title">
-                            <span th:text="${courseSession.title}">Introduction</span>
-                            <a th:href="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/edit'}" class="btn btn-sm btn-secondary" style="margin-left: 0.5rem; font-weight: normal;">Edit</a>
-                        </div>
-                        <div style="font-size: 0.85rem; color: var(--text-light);" th:text="${courseSession.description}"></div>
-                    </div>
-                    <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/delete'}" method="post" onsubmit="return confirm('Are you sure? All videos, quizzes and assignments in this session will be deleted.');">
-                        <input type="hidden" name="courseId" th:value="${course.courseId}" />
-                        <button type="submit" class="btn btn-sm btn-danger">Delete Session</button>
-                    </form>
-                </div>
-                
-                <div class="session-body">
-                    <!-- Videos Section -->
-                    <div class="content-section">
-                        <div class="content-header">
-                            <h4>Videos</h4>
-                            <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-video-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">+ Add Video</button>
-                        </div>
-                        
-                        <ul class="item-list" th:if="${courseSession.videos != null and !courseSession.videos.isEmpty()}">
-                            <li th:each="video : ${courseSession.videos}" class="item-row">
-                                <div class="item-info">
-                                    <span class="badge badge-video">Video</span>
-                                    <span th:text="${video.title}">Video Title</span>
-                                    <span style="color: var(--text-light); font-size: 0.85rem;" th:text="'(' + ${video.duration} + ' min)'"></span>
-                                    <a th:href="@{'/instructor/videos/' + ${video.videoId} + '/edit'}" style="font-size: 0.85rem; color: var(--primary);">Edit</a>
-                                </div>
-                                <form th:action="@{'/instructor/videos/' + ${video.videoId} + '/delete'}" method="post" onsubmit="return confirm('Delete this video?');">
-                                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
-                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.1rem 0.5rem;">&#215;</button>
-                                </form>
-                            </li>
-                        </ul>
-                        
-                        <!-- Add Video Form -->
-                        <div th:id="'add-video-' + ${courseSession.sessionId}" class="add-form">
-                            <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/videos'}" method="post">
-                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
-                                <div class="form-group">
-                                    <label>Video Title</label>
-                                    <input type="text" name="title" class="form-control" required />
-                                </div>
-                                <div class="form-group">
-                                    <label>Video URL (Embed Link)</label>
-                                    <input type="text" name="videoUrl" class="form-control" required placeholder="https://..." />
-                                </div>
-                                <div class="form-group">
-                                    <label>Duration (minutes)</label>
-                                    <input type="number" name="duration" class="form-control" required min="1" />
-                                </div>
-                                <div class="form-actions">
-                                    <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-video-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">Cancel</button>
-                                    <button type="submit" class="btn btn-sm btn-primary">Save Video</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Quizzes Section -->
-                    <div class="content-section">
-                        <div class="content-header">
-                            <h4>Quizzes</h4>
-                            <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-quiz-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">+ Add Quiz</button>
-                        </div>
-                        
-                        <ul class="item-list" th:if="${courseSession.quizzes != null and !courseSession.quizzes.isEmpty()}">
-                            <li th:each="quiz : ${courseSession.quizzes}" class="item-row">
-                                <div class="item-info">
-                                    <span class="badge badge-quiz">Quiz</span>
-                                    <span th:text="${quiz.title}">Quiz Title</span>
-                                    <a th:href="@{'/instructor/quizzes/' + ${quiz.quizId} + '/edit'}" style="font-size: 0.85rem; color: var(--primary);">Edit</a>
-                                </div>
-                                <form th:action="@{'/instructor/quizzes/' + ${quiz.quizId} + '/delete'}" method="post" onsubmit="return confirm('Delete this quiz?');">
-                                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
-                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.1rem 0.5rem;">&#215;</button>
-                                </form>
-                            </li>
-                        </ul>
-                        
-                        <!-- Add Quiz Form -->
-                        <div th:id="'add-quiz-' + ${courseSession.sessionId}" class="add-form">
-                            <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/quizzes'}" method="post">
-                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
-                                <div class="form-group">
-                                    <label>Quiz Title</label>
-                                    <input type="text" name="title" class="form-control" required />
-                                </div>
-                                <!-- Basic quiz info only for now -->
-                                <div class="form-actions">
-                                    <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-quiz-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">Cancel</button>
-                                    <button type="submit" class="btn btn-sm btn-primary">Save Quiz</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Assignments Section -->
-                    <div class="content-section">
-                        <div class="content-header">
-                            <h4>Assignments</h4>
-                            <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-assignment-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">+ Add Assignment</button>
-                        </div>
-                        
-                        <ul class="item-list" th:if="${courseSession.assignments != null and !courseSession.assignments.isEmpty()}">
-                            <li th:each="assign : ${courseSession.assignments}" class="item-row">
-                                <div class="item-info">
-                                    <span class="badge badge-assignment">Assign</span>
-                                    <span th:text="${assign.title}">Assignment Title</span>
-                                    <a th:href="@{'/instructor/assignments/' + ${assign.assignmentId} + '/edit'}" style="font-size: 0.85rem; color: var(--primary);">Edit</a>
-                                </div>
-                                <form th:action="@{'/instructor/assignments/' + ${assign.assignmentId} + '/delete'}" method="post" onsubmit="return confirm('Delete this assignment?');">
-                                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
-                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.1rem 0.5rem;">&#215;</button>
-                                </form>
-                            </li>
-                        </ul>
-                        
-                        <!-- Add Assignment Form -->
-                        <div th:id="'add-assignment-' + ${courseSession.sessionId}" class="add-form">
-                            <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/assignments'}" method="post">
-                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
-                                <div class="form-group">
-                                    <label>Assignment Title</label>
-                                    <input type="text" name="title" class="form-control" required />
-                                </div>
-                                <div class="form-group">
-                                    <label>Description</label>
-                                    <textarea name="description" class="form-control" rows="2"></textarea>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="button" class="btn btn-sm btn-secondary" th:attr="data-target='add-assignment-' + ${courseSession.sessionId}" onclick="toggleForm(this.getAttribute('data-target'))">Cancel</button>
-                                    <button type="submit" class="btn btn-sm btn-primary">Save Assignment</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+            <div th:if="${error}" class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}">Lỗi!</span>
             </div>
 
-            <!-- Add New Session Card -->
-            <div class="card" style="border: 2px dashed var(--border); background: transparent; text-align: center;">
-                <button type="button" class="btn btn-secondary" onclick="toggleForm('add-session-form')">+ Add New Session</button>
-                
-                <div id="add-session-form" class="add-form" style="text-align: left; max-width: 600px; margin: 1rem auto 0;">
+            <!-- Add New Session Form (Hidden by default) -->
+            <div id="add-session-form" class="hidden mb-12 animate-in zoom-in-95 duration-200">
+                <div class="card p-8 border-2 border-primary/20 shadow-xl ring-4 ring-primary/5">
+                    <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <i class="fas fa-folder-plus text-primary"></i> Tạo chương học mới
+                    </h3>
                     <form th:action="@{'/instructor/courses/' + ${course.courseId} + '/sessions'}" method="post">
-                        <div class="form-group">
-                            <label>Session Title</label>
-                            <input type="text" name="title" class="form-control" required />
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                            <div class="md:col-span-3">
+                                <label class="label-field">Tiêu đề chương</label>
+                                <input type="text" name="title" class="input-field" placeholder="Ví dụ: Chương 1: Giới thiệu về DSA" required>
+                            </div>
+                            <div>
+                                <label class="label-field">Thứ tự hiển thị</label>
+                                <input type="number" name="sessionOrder" class="input-field" value="1" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea name="description" class="form-control" rows="2"></textarea>
+                        <div class="mb-6">
+                            <label class="label-field">Mô tả ngắn</label>
+                            <textarea name="description" class="input-field" rows="2" placeholder="Tóm tắt nội dung chính của chương này..."></textarea>
                         </div>
-                        <div class="form-group">
-                            <label>Order</label>
-                            <input type="number" name="sessionOrder" class="form-control" value="1" required />
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-sm btn-secondary" onclick="toggleForm('add-session-form')">Cancel</button>
-                            <button type="submit" class="btn btn-sm btn-primary">Create Session</button>
+                        <div class="flex justify-end gap-3">
+                            <button type="button" class="btn btn-outline" onclick="toggleForm('add-session-form')">Hủy bỏ</button>
+                            <button type="submit" class="btn btn-primary">Xác nhận tạo chương</button>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <!-- Sessions List -->
+            <div class="space-y-8">
+                <div th:each="courseSession, sStat : ${course.sessions}" class="group">
+                    <div class="card shadow-md border-none ring-1 ring-gray-200 overflow-visible relative">
+                        <!-- Session Header -->
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-xl flex justify-between items-start gap-4">
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary font-bold border border-gray-100" th:text="${sStat.count}">1</div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900" th:text="${courseSession.title}">Tên chương</h3>
+                                    <p class="text-sm text-gray-500 mt-1" th:text="${courseSession.description}">Mô tả chương...</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a th:href="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/edit'}" class="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition-all shadow-sm" title="Sửa chương">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </a>
+                                <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/delete'}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chương này? Tất cả bài học bên trong sẽ bị mất.');">
+                                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                    <button type="submit" class="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-600 hover:border-red-600 transition-all shadow-sm" title="Xóa chương">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Session Content -->
+                        <div class="p-6 space-y-8">
+                            <!-- Videos Section -->
+                            <section>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <i class="fas fa-play-circle text-blue-500"></i> Video bài giảng
+                                    </h4>
+                                    <button type="button" class="text-xs font-bold text-primary hover:underline" th:attr="onclick='toggleForm(\'add-video-' + ${courseSession.sessionId} + '\')'">
+                                        <i class="fas fa-plus mr-1"></i> Thêm video
+                                    </button>
+                                </div>
+
+                                <div th:id="'add-video-' + ${courseSession.sessionId}" class="hidden mb-4 p-4 rounded-xl bg-blue-50 border border-blue-100 animate-in slide-in-from-top-2">
+                                    <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/videos'}" method="post" class="space-y-4">
+                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="label-field text-xs">Tiêu đề video</label>
+                                                <input type="text" name="title" class="input-field py-1.5 text-sm" required>
+                                            </div>
+                                            <div>
+                                                <label class="label-field text-xs">Thời lượng (phút)</label>
+                                                <input type="number" name="duration" class="input-field py-1.5 text-sm" required min="1">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="label-field text-xs">URL Video (Embed)</label>
+                                            <input type="text" name="videoUrl" class="input-field py-1.5 text-sm" required placeholder="https://youtube.com/embed/...">
+                                        </div>
+                                        <div class="flex justify-end gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline" th:attr="onclick='toggleForm(\'add-video-' + ${courseSession.sessionId} + '\')'">Hủy</button>
+                                            <button type="submit" class="btn btn-sm btn-primary">Lưu video</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <ul class="space-y-2">
+                                    <li th:each="video : ${courseSession.videos}" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 group/item hover:bg-white hover:shadow-sm transition-all">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xs">
+                                                <i class="fas fa-video"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-bold text-gray-700" th:text="${video.title}">Video Title</p>
+                                                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider" th:text="${video.duration} + ' phút'">5 phút</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                            <a th:href="@{'/instructor/videos/' + ${video.videoId} + '/edit'}" class="text-gray-400 hover:text-primary transition-colors"><i class="fas fa-edit text-xs"></i></a>
+                                            <form th:action="@{'/instructor/videos/' + ${video.videoId} + '/delete'}" method="post" class="inline">
+                                                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt text-xs"></i></button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(courseSession.videos)}" class="py-4 text-center border-2 border-dashed border-gray-100 rounded-xl">
+                                        <p class="text-xs text-gray-400 italic">Chưa có video nào.</p>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <!-- Quizzes Section -->
+                            <section>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <i class="fas fa-question-circle text-amber-500"></i> Bài trắc nghiệm
+                                    </h4>
+                                    <button type="button" class="text-xs font-bold text-primary hover:underline" th:attr="onclick='toggleForm(\'add-quiz-' + ${courseSession.sessionId} + '\')'">
+                                        <i class="fas fa-plus mr-1"></i> Thêm quiz
+                                    </button>
+                                </div>
+
+                                <div th:id="'add-quiz-' + ${courseSession.sessionId}" class="hidden mb-4 p-4 rounded-xl bg-amber-50 border border-amber-100 animate-in slide-in-from-top-2">
+                                    <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/quizzes'}" method="post" class="space-y-4">
+                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                        <div>
+                                            <label class="label-field text-xs">Tiêu đề Quiz</label>
+                                            <input type="text" name="title" class="input-field py-1.5 text-sm" required>
+                                        </div>
+                                        <div class="flex justify-end gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline" th:attr="onclick='toggleForm(\'add-quiz-' + ${courseSession.sessionId} + '\')'">Hủy</button>
+                                            <button type="submit" class="btn btn-sm btn-primary">Lưu quiz</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <ul class="space-y-2">
+                                    <li th:each="quiz : ${courseSession.quizzes}" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 group/item hover:bg-white hover:shadow-sm transition-all">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs">
+                                                <i class="fas fa-tasks"></i>
+                                            </div>
+                                            <p class="text-sm font-bold text-gray-700" th:text="${quiz.title}">Quiz Title</p>
+                                        </div>
+                                        <div class="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                            <a th:href="@{'/instructor/quizzes/' + ${quiz.quizId} + '/edit'}" class="text-gray-400 hover:text-primary transition-colors"><i class="fas fa-edit text-xs"></i></a>
+                                            <form th:action="@{'/instructor/quizzes/' + ${quiz.quizId} + '/delete'}" method="post" class="inline">
+                                                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt text-xs"></i></button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(courseSession.quizzes)}" class="py-4 text-center border-2 border-dashed border-gray-100 rounded-xl">
+                                        <p class="text-xs text-gray-400 italic">Chưa có bài trắc nghiệm nào.</p>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <!-- Assignments Section -->
+                            <section>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <i class="fas fa-code text-purple-500"></i> Bài tập thực hành
+                                    </h4>
+                                    <button type="button" class="text-xs font-bold text-primary hover:underline" th:attr="onclick='toggleForm(\'add-assign-' + ${courseSession.sessionId} + '\')'">
+                                        <i class="fas fa-plus mr-1"></i> Thêm bài tập
+                                    </button>
+                                </div>
+
+                                <div th:id="'add-assign-' + ${courseSession.sessionId}" class="hidden mb-4 p-4 rounded-xl bg-purple-50 border border-purple-100 animate-in slide-in-from-top-2">
+                                    <form th:action="@{'/instructor/sessions/' + ${courseSession.sessionId} + '/assignments'}" method="post" class="space-y-4">
+                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                        <div>
+                                            <label class="label-field text-xs">Tiêu đề bài tập</label>
+                                            <input type="text" name="title" class="input-field py-1.5 text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="label-field text-xs">Mô tả/Yêu cầu</label>
+                                            <textarea name="description" class="input-field py-1.5 text-sm" rows="2"></textarea>
+                                        </div>
+                                        <div class="flex justify-end gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline" th:attr="onclick='toggleForm(\'add-assign-' + ${courseSession.sessionId} + '\')'">Hủy</button>
+                                            <button type="submit" class="btn btn-sm btn-primary">Lưu bài tập</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <ul class="space-y-2">
+                                    <li th:each="assign : ${courseSession.assignments}" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 group/item hover:bg-white hover:shadow-sm transition-all">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xs">
+                                                <i class="fas fa-file-code"></i>
+                                            </div>
+                                            <p class="text-sm font-bold text-gray-700" th:text="${assign.title}">Assignment Title</p>
+                                        </div>
+                                        <div class="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                            <a th:href="@{'/instructor/assignments/' + ${assign.assignmentId} + '/edit'}" class="text-gray-400 hover:text-primary transition-colors"><i class="fas fa-edit text-xs"></i></a>
+                                            <form th:action="@{'/instructor/assignments/' + ${assign.assignmentId} + '/delete'}" method="post" class="inline">
+                                                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                                                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt text-xs"></i></button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(courseSession.assignments)}" class="py-4 text-center border-2 border-dashed border-gray-100 rounded-xl">
+                                        <p class="text-xs text-gray-400 italic">Chưa có bài tập nào.</p>
+                                    </li>
+                                </ul>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(course.sessions)}" class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300 text-3xl">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Chưa có nội dung nào</h3>
+                <p class="text-gray-500">Bắt đầu bằng cách thêm chương học đầu tiên cho khóa học của bạn.</p>
+                <button class="btn btn-primary mt-8" onclick="toggleForm('add-session-form')">
+                    <i class="fas fa-plus mr-2"></i> Thêm chương học đầu tiên
+                </button>
+            </div>
         </div>
-    </main>
 
-    <footer>
-        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
-    </footer>
-
-    <script>
-        function toggleForm(id) {
-            const form = document.getElementById(id);
-            if (form) {
-                if (form.style.display === 'block') {
-                    form.style.display = 'none';
-                } else {
-                    form.style.display = 'block';
+        <script>
+            function toggleForm(id) {
+                const form = document.getElementById(id);
+                if (form) {
+                    form.classList.toggle('hidden');
                 }
             }
-        }
-    </script>
+        </script>
+    </div>
 </body>
 </html>

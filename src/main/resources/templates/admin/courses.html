@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý khóa học - DSA Learning Platform</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#3b82f6',
+                            dark: '#1e40af',
+                        },
+                        secondary: {
+                            DEFAULT: '#8b5cf6',
+                            dark: '#7c3aed',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn {
+                @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed gap-2;
+            }
+            .btn-primary {
+                @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary;
+            }
+            .btn-danger {
+                @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+            }
+            .btn-sm {
+                @apply px-3 py-1.5 text-sm;
+            }
+            .card {
+                @apply bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-200;
+            }
+            .label-field {
+                @apply block text-sm font-semibold text-gray-700 mb-1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
+    <main class="flex-grow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <i class="fas fa-book text-primary"></i>
+                        Quản lý khóa học
+                    </h1>
+                    <p class="text-gray-600 mt-2">Quản lý tất cả khóa học trong hệ thống</p>
+                </div>
+            </div>
+
+            <!-- Filter/Search Section -->
+            <div class="card mb-6 p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="label-field">Tìm kiếm theo tên khóa học</label>
+                        <input type="text" id="searchTitle" class="input-field" placeholder="Nhập tên khóa học">
+                    </div>
+                    <div>
+                        <label class="label-field">Tìm kiếm theo giảng viên</label>
+                        <input type="text" id="searchInstructor" class="input-field" placeholder="Nhập tên giảng viên">
+                    </div>
+                    <div>
+                        <label class="label-field">Lọc theo trạng thái</label>
+                        <select id="filterStatus" class="input-field">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Active">Hoạt động</option>
+                            <option value="Inactive">Không hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Table -->
+            <div class="card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Tên khóa học</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Giảng viên</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Giá</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Trạng thái</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Học viên</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ngày tạo</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr th:each="course : ${courses}" class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                                            <i class="fas fa-book text-primary"></i>
+                                        </div>
+                                        <span class="font-medium text-gray-900" th:text="${course.title}">Course Title</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600" th:text="${course.instructor != null ? course.instructor.fullName : 'N/A'}">Instructor Name</td>
+                                <td class="px-6 py-4 font-semibold text-gray-900">
+                                    <span th:text="${'₫' + #numbers.formatInteger(course.price, 0)}">₫0</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span th:if="${course.active}" class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle"></i>Hoạt động
+                                    </span>
+                                    <span th:unless="${course.active}" class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-times-circle"></i>Không hoạt động
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-users text-xs"></i>
+                                        <span>-</span>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    <span th:text="${course.createdAt != null ? #temporals.format(course.createdAt, 'dd/MM/yyyy') : '-'}">01/01/2026</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button th:if="${course.active}" th:onclick="|disableCourse(${course.courseId})|" class="text-red-600 hover:text-red-800 transition-colors text-sm font-medium" title="Vô hiệu hóa">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                        <button th:unless="${course.active}" th:onclick="|enableCourse(${course.courseId})|" class="text-green-600 hover:text-green-800 transition-colors text-sm font-medium" title="Kích hoạt">
+                                            <i class="fas fa-check-circle"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(courses)}">
+                                <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                                    <i class="fas fa-inbox text-4xl mb-4 opacity-20"></i>
+                                    <p>Không có khóa học nào</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Tổng khóa học</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1" th:text="${#lists.size(courses)}">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-book text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Khóa học hoạt động</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1" th:text="${activeCourseCount}">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Khóa học không hoạt động</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1" th:text="${inactiveCourseCount}">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600">
+                            <i class="fas fa-times-circle text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Tổng học viên</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1" th:text="${totalEnrollments}">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 pt-12 pb-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div class="col-span-1 md:col-span-2">
+                    <a href="/" class="flex items-center gap-2 text-2xl font-bold text-primary tracking-tight mb-4">
+                        <i class="fas fa-code-branch"></i>
+                        <span>DSA Platform</span>
+                    </a>
+                    <p class="text-gray-500 max-w-sm">
+                        Nền tảng học tập cấu trúc dữ liệu và giải thuật hàng đầu, giúp bạn làm chủ tư duy lập trình.
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-8 flex justify-between items-center">
+                <p class="text-gray-500 text-sm">&copy; 2026 DSA Learning Platform. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple search and filter functionality
+        const searchTitle = document.getElementById('searchTitle');
+        const searchInstructor = document.getElementById('searchInstructor');
+        const filterStatus = document.getElementById('filterStatus');
+        const tableRows = document.querySelectorAll('tbody tr');
+
+        function filterTable() {
+            const titleValue = searchTitle.value.toLowerCase();
+            const instructorValue = searchInstructor.value.toLowerCase();
+            const statusValue = filterStatus.value;
+
+            tableRows.forEach(row => {
+                if (row.querySelector('td:nth-child(1)')) {
+                    const title = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    const instructor = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const status = row.querySelector('td:nth-child(4)').textContent;
+
+                    const titleMatch = title.includes(titleValue);
+                    const instructorMatch = instructor.includes(instructorValue);
+                    const statusMatch = !statusValue || status.includes(statusValue);
+
+                    row.style.display = titleMatch && instructorMatch && statusMatch ? '' : 'none';
+                }
+            });
+        }
+
+        searchTitle.addEventListener('keyup', filterTable);
+        searchInstructor.addEventListener('keyup', filterTable);
+        filterStatus.addEventListener('change', filterTable);
+
+        // Course Management Functions
+        function disableCourse(courseId) {
+            if (confirm('Bạn chắc chắn muốn vô hiệu hóa khóa học này?')) {
+                fetch(`/api/admin/courses/${courseId}/disable`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra');
+                });
+            }
+        }
+
+        function enableCourse(courseId) {
+            if (confirm('Bạn chắc chắn muốn kích hoạt khóa học này?')) {
+                fetch(`/api/admin/courses/${courseId}/enable`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

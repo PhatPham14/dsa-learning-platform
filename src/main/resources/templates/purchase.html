@@ -1,186 +1,171 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{purchase.title}">Purchase</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; --success: #10b981; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
-        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
-        nav { display: flex; gap: 2rem; }
-        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
-        .nav-auth { display: flex; gap: 1rem; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
-        .btn-success { background: var(--success); color: white; width: 100%; }
-        .btn-success:hover:not(:disabled) { background: #059669; }
-        .btn-danger { background: #ef4444; color: white; }
-        .main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-        .feature-card { background: white; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid var(--border); }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; }
-        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: white; }
-        h3 { color: var(--success); margin-bottom: 0.5rem; }
-        .header-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-    </style>
+    <title th:text="#{purchase.title}">Thanh toán - DSA Platform</title>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="nav-wrapper">
-                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
-                <nav>
-                    <a href="/" th:text="#{nav.home}">Home</a>
-                    <a href="/purchase" th:text="#{nav.purchase}">Purchase</a>
-                </nav>
-                <div class="nav-auth">
-                    <form th:action="@{/language}" method="post" style="margin: 0;">
-                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                         <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">🌍 English</button>
-                         <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">🌍 Tiếng Việt</button>
-                     </form>
-                    <a href="/login" class="btn btn-success" th:if="${user == null}" th:text="#{nav.login}">Login</a>
-                    <th:block th:if="${user != null}">
-                        <span th:text="${user.fullName}"></span>
-                        <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
-                    </th:block>
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="bg-white border-b border-gray-200 mb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 text-xl">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" th:text="#{purchase.purchaseCourses}">Thanh toán khóa học</h1>
+                        <p class="text-sm text-gray-500 mt-1" th:text="#{purchase.enrollInPremium}">Đăng ký để bắt đầu học tập ngay lập tức.</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </header>
 
-    <main class="main">
-        <div class="card header-card">
-            <h1 th:text="#{purchase.purchaseCourses}">Purchase Courses</h1>
-            <p th:text="#{purchase.enrollInPremium}" style="color: rgba(255,255,255,0.9); margin: 0;">Enroll in premium courses</p>
-        </div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column: Course Info -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Course Card -->
+                    <div class="card p-6 border-none ring-1 ring-gray-200" th:if="${course != null}">
+                        <div class="flex gap-6">
+                            <div class="w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                                <img th:src="${course.displayImageUrl != null ? course.displayImageUrl : '/images/default-course.svg'}" class="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900 mb-2" th:text="${course.title}">Tiêu đề khóa học</h2>
+                                <p class="text-sm text-gray-500 line-clamp-2 mb-4" th:text="${course.description}">Mô tả khóa học...</p>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-2xl font-extrabold text-primary" th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
+                                    <span class="text-xs text-gray-400 line-through">1,200,000 VND</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Thông tin khóa học -->
-        <div class="card" th:if="${course != null}">
-            <h2 th:text="${course.title}" style="color: var(--primary); margin-bottom: 0.5rem;">Course Title</h2>
-            <p th:text="${course.description}" style="color: var(--text-light); margin-bottom: 1rem;">Course description</p>
-            <p style="font-size: 1.5rem; font-weight: 700; color: var(--success);">
-                <span th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')}">0</span> VND
-            </p>
-        </div>
+                    <!-- Error State -->
+                    <div class="card p-8 text-center" th:if="${course == null}">
+                        <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <p class="text-gray-600 mb-6">Không tìm thấy thông tin khóa học hợp lệ.</p>
+                        <a href="/courses" class="btn btn-primary">Quay lại danh sách khóa học</a>
+                    </div>
 
-        <!-- Nếu không có khóa học -->
-        <div class="card" th:if="${course == null && courseId != null}">
-            <p style="color: #b91c1c;">Không tìm thấy khóa học với ID: <span th:text="${courseId}"></span></p>
-            <a href="/courses" class="btn btn-success" style="display: inline-block; width: auto; margin-top: 0.5rem;">Xem danh sách khóa học</a>
-        </div>
-
-        <div class="card" th:if="${course == null && courseId == null}">
-            <p style="color: var(--text-light);">Vui lòng chọn một khóa học để mua.</p>
-            <a href="/courses" class="btn btn-success" style="display: inline-block; width: auto; margin-top: 0.5rem;">Xem danh sách khóa học</a>
-        </div>
-
-        <div class="grid" th:if="${course != null}">
-            <div class="feature-card">
-                <h3 th:text="#{purchase.instantAccess}">Instant Access</h3>
-                <p th:text="#{purchase.instantAccessDesc}">Get instant access to all course materials and resources</p>
-            </div>
-            <div class="feature-card">
-                <h3 th:text="#{purchase.securePayment}">Secure Payment</h3>
-                <p th:text="#{purchase.securePaymentDesc}">Your payment information is safe and encrypted</p>
-            </div>
-        </div>
-
-        <div class="card" th:if="${user == null && course != null}">
-            <p style="color: var(--text-light);" th:text="#{purchase.loginRequired}">Login Required</p>
-            <a href="/login" class="btn btn-success" th:text="#{nav.login}" style="display: inline-block; width: auto;">Login</a>
-        </div>
-
-        <div class="card" th:if="${user != null && course != null}">
-            <h3 style="margin-bottom: 1rem;">Xác nhận thanh toán</h3>
-            <form id="purchase-form">
-                <div id="purchase-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
-                <div id="purchase-success" style="display:none; margin-bottom:0.75rem; color:#10b981; font-size:0.9rem;"></div>
-
-                <!-- studentId từ user đã đăng nhập -->
-                <input type="hidden" id="studentId" th:value="${user.userId}">
-                <!-- courseId ẩn, không cho chỉnh sửa -->
-                <input type="hidden" id="courseId" th:value="${course.courseId}">
-
-                <div class="form-group">
-                    <label for="provider">Phương thức thanh toán</label>
-                    <select id="provider" name="provider" style="width:100%; padding:0.75rem; border:1px solid var(--border); border-radius:0.5rem;">
-                        <option value="vnpay">VNPAY</option>
-                    </select>
+                    <!-- Benefits -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" th:if="${course != null}">
+                        <div class="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                            <h3 class="font-bold text-blue-900 text-sm mb-1" th:text="#{purchase.instantAccess}">Truy cập ngay lập tức</h3>
+                            <p class="text-xs text-blue-700" th:text="#{purchase.instantAccessDesc}">Học ngay sau khi thanh toán thành công.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-green-50 border border-green-100">
+                            <h3 class="font-bold text-green-900 text-sm mb-1" th:text="#{purchase.securePayment}">Thanh toán an toàn</h3>
+                            <p class="text-xs text-green-700" th:text="#{purchase.securePaymentDesc}">Thông tin của bạn được bảo mật tuyệt đối.</p>
+                        </div>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-success" id="purchase-btn" th:text="#{purchase.completePurchase}">Complete Purchase</button>
-            </form>
+                <!-- Right Column: Checkout Form -->
+                <div class="lg:col-span-1" th:if="${course != null}">
+                    <div class="card p-6 shadow-xl border-none ring-1 ring-primary/20 sticky top-24">
+                        <h3 class="text-lg font-bold text-gray-900 mb-6">Chi tiết thanh toán</h3>
+                        
+                        <div th:if="${user == null}" class="text-center py-4">
+                            <p class="text-sm text-gray-500 mb-4" th:text="#{purchase.loginRequired}">Bạn cần đăng nhập để tiếp tục.</p>
+                            <a href="/login" class="btn btn-primary w-full" th:text="#{nav.login}">Đăng nhập</a>
+                        </div>
+
+                        <form id="purchase-form" class="space-y-4" th:if="${user != null}">
+                            <div id="purchase-error" class="hidden p-3 rounded-lg bg-red-50 text-red-700 text-xs border border-red-100"></div>
+                            <div id="purchase-success" class="hidden p-3 rounded-lg bg-green-50 text-green-700 text-xs border border-green-100"></div>
+
+                            <input type="hidden" id="studentId" th:value="${user.userId}">
+                            <input type="hidden" id="courseId" th:value="${course.courseId}">
+
+                            <div class="space-y-2">
+                                <label class="label-field text-xs">Phương thức thanh toán</label>
+                                <div class="relative">
+                                    <select id="provider" name="provider" class="input-field py-2 text-sm appearance-none bg-gray-50 border-gray-200">
+                                        <option value="vnpay">VNPAY (Cổng thanh toán)</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Giá gốc</span>
+                                    <span class="text-gray-900 font-medium">1,200,000 VND</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Giảm giá</span>
+                                    <span class="text-green-600 font-medium" th:text="'- ' + ${#numbers.formatDecimal(1200000 - course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">- 0 VND</span>
+                                </div>
+                                <div class="border-t border-gray-100 pt-3 flex justify-between items-center">
+                                    <span class="font-bold text-gray-900">Tổng cộng</span>
+                                    <span class="text-xl font-extrabold text-primary" th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="purchase-btn" class="btn btn-primary w-full py-3 mt-4 shadow-lg shadow-primary/20">
+                                <span th:text="#{purchase.completePurchase}">Hoàn tất thanh toán</span>
+                            </button>
+                            
+                            <p class="text-[10px] text-gray-400 text-center mt-4">
+                                Nhấn "Hoàn tất thanh toán", bạn đồng ý với <a href="#" class="underline">Điều khoản mua hàng</a> của chúng tôi.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-    </main>
 
-    <footer>
-        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
-    </footer>
+        <script>
+            (function() {
+                const form = document.getElementById('purchase-form');
+                const submitBtn = document.getElementById('purchase-btn');
+                const errorBox = document.getElementById('purchase-error');
+                const successBox = document.getElementById('purchase-success');
 
-    <script>
-        (function() {
-            const form = document.getElementById('purchase-form');
-            const submitBtn = document.getElementById('purchase-btn');
-            const errorBox = document.getElementById('purchase-error');
-            const successBox = document.getElementById('purchase-success');
+                if (!form) return;
 
-            if (!form) return;
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    errorBox.classList.add('hidden');
+                    successBox.classList.add('hidden');
 
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                errorBox.style.display = 'none';
-                successBox.style.display = 'none';
+                    const studentId = document.getElementById('studentId').value;
+                    const courseId = document.getElementById('courseId').value;
+                    const provider = document.getElementById('provider').value;
 
-                const studentId = document.getElementById('studentId').value;
-                const courseId = document.getElementById('courseId').value;
-                const provider = document.getElementById('provider').value;
+                    submitBtn.disabled = true;
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Đang xử lý...';
 
-                if (!studentId || !courseId) {
-                    errorBox.textContent = 'Thiếu thông tin thanh toán.';
-                    errorBox.style.display = 'block';
-                    return;
-                }
+                    try {
+                        const url = `/api/payments/charge?studentId=${studentId}&courseId=${courseId}&provider=${provider}`;
+                        const res = await fetch(url, { method: 'POST' });
 
-                submitBtn.disabled = true;
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = 'Đang xử lý...';
-
-                try {
-                    const url = `/api/payments/charge?studentId=${studentId}&courseId=${courseId}&provider=${provider}`;
-                    const res = await fetch(url, {
-                        method: 'POST'
-                    });
-
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        errorBox.textContent = err.message || 'Thanh toán thất bại.';
-                        errorBox.style.display = 'block';
-                    } else {
-                        successBox.textContent = 'Thanh toán thành công! Đang chuyển hướng...';
-                        successBox.style.display = 'block';
-                        setTimeout(() => {
-                            window.location.href = '/my-courses';
-                        }, 1500);
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            errorBox.textContent = err.message || 'Thanh toán thất bại. Vui lòng thử lại.';
+                            errorBox.classList.remove('hidden');
+                        } else {
+                            successBox.textContent = 'Thanh toán thành công! Đang chuyển hướng...';
+                            successBox.classList.remove('hidden');
+                            setTimeout(() => { window.location.href = '/my-courses'; }, 1500);
+                        }
+                    } catch (err) {
+                        errorBox.textContent = 'Có lỗi xảy ra kết nối đến hệ thống.';
+                        errorBox.classList.remove('hidden');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
                     }
-                } catch (err) {
-                    errorBox.textContent = 'Có lỗi xảy ra.';
-                    errorBox.style.display = 'block';
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
-                }
-            });
-        })();
-    </script>
+                });
+            })();
+        </script>
+    </div>
 </body>
 </html>

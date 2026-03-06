@@ -1,54 +1,73 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khóa học đã mua</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        .main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid var(--border); }
-        h1 { font-size: 1.75rem; margin-bottom: 1rem; }
-        p { color: var(--text-light); }
-    </style>
+    <title>Khóa học của tôi - DSA Platform</title>
 </head>
 <body>
-    <div class="main">
-        <a href="/" style="text-decoration:none; color: var(--primary);">&larr; Trang chủ</a>
-        <div class="card" style="margin-top: 1rem;">
-            <h1>Khóa học đã mua</h1>
-
-            <div th:if="${message}" style="background-color: #d1fae5; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
-                <span th:text="${message}"></span>
-            </div>
-            
-            <div th:if="${enrollments == null || enrollments.isEmpty()}">
-                <p>Bạn chưa mua khóa học nào.</p>
-                <a href="/courses" style="display:inline-block; margin-top:1rem; padding:0.5rem 1rem; background:var(--primary); color:white; border-radius:0.5rem; text-decoration:none;">Khám phá khóa học</a>
-            </div>
-
-            <div th:if="${enrollments != null && !enrollments.isEmpty()}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                <div th:each="enrollment : ${enrollments}" style="border: 1px solid var(--border); border-radius: 0.5rem; overflow: hidden; display: flex; flex-direction: column;">
-                    <div class="course-image" style="height: 160px; background-color: #f3f4f6; border-bottom: 1px solid var(--border); overflow: hidden;">
-                        <img th:src="${enrollment.course.displayImageUrl}" alt="Course Image" style="width: 100%; height: 100%; object-fit: cover;">
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="bg-white border-b border-gray-200 mb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary text-xl">
+                        <i class="fas fa-graduation-cap"></i>
                     </div>
-                    <div style="padding: 1rem; flex: 1; display: flex; flex-direction: column;">
-                        <h3 th:text="${enrollment.course.title}" style="color: var(--primary); margin-bottom: 0.5rem;">Course Title</h3>
-                        <p th:text="${enrollment.course.description}" style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Course description...</p>
-                        
-                        <div style="margin-bottom: 1rem; margin-top: auto;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
-                                <span>Tiến độ</span>
-                                <span th:text="${enrollment.progress + '%'}">0%</span>
-                            </div>
-                            <div style="background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
-                                <div th:style="'width: ' + ${enrollment.progress} + '%; background: var(--primary); height: 100%;'"></div>
-                            </div>
-                        </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" th:text="#{nav.myCourses}">Khóa học đã đăng ký</h1>
+                        <p class="text-sm text-gray-500 mt-1">Tiếp tục hành trình chinh phục kiến thức của bạn.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <a th:href="@{'/learn?courseId=' + ${enrollment.course.courseId}}" style="display: block; text-align: center; background: var(--primary); color: white; padding: 0.5rem; border-radius: 0.5rem; text-decoration: none;">Vào học</a>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <!-- Messages -->
+            <div th:if="${message}" class="mb-6 p-4 rounded-xl bg-green-50 border border-green-100 text-green-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${message}">Thông báo</span>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${enrollments == null || enrollments.isEmpty()}" class="text-center py-24 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300 text-3xl">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Bạn chưa sở hữu khóa học nào</h3>
+                <p class="text-gray-500">Hãy khám phá các khóa học chất lượng để bắt đầu nâng cao kỹ năng.</p>
+                <a href="/courses" class="btn btn-primary mt-8">
+                    <i class="fas fa-search mr-2"></i> Khám phá khóa học ngay
+                </a>
+            </div>
+
+            <!-- Courses Grid -->
+            <div th:if="${enrollments != null && !enrollments.isEmpty()}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <div th:each="enrollment : ${enrollments}" class="card group flex flex-col hover:shadow-xl transition-all duration-300 border-none ring-1 ring-gray-200 overflow-hidden">
+                    <!-- Course Image -->
+                    <div class="relative h-44 overflow-hidden bg-gray-100">
+                        <img th:src="${enrollment.course.displayImageUrl != null ? enrollment.course.displayImageUrl : '/images/default-course.svg'}" alt="Course Image" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                            <span class="text-white text-xs font-bold bg-primary/80 px-2 py-0.5 rounded backdrop-blur-sm" th:text="${enrollment.progress + '% hoàn thành'}">15% hoàn thành</span>
+                        </div>
+                    </div>
+
+                    <!-- Course Content -->
+                    <div class="p-5 flex-grow flex flex-col">
+                        <h3 th:text="${enrollment.course.title}" class="text-base font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors min-h-[2.5rem]">Tiêu đề khóa học</h3>
+                        <p th:text="${enrollment.course.description}" class="text-xs text-gray-500 mb-6 line-clamp-2 flex-grow">Mô tả khóa học...</p>
+                        
+                        <div class="pt-4 border-t border-gray-100 flex flex-col gap-4">
+                            <!-- Progress Bar -->
+                            <div class="w-full">
+                                <div class="bg-gray-100 rounded-full h-1.5 w-full">
+                                    <div class="bg-primary h-1.5 rounded-full transition-all duration-500" th:style="'width: ' + ${enrollment.progress} + '%'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Action Button -->
+                            <a th:href="@{'/learn?courseId=' + ${enrollment.course.courseId}}" class="btn btn-primary w-full py-2.5 shadow-lg shadow-primary/10">
+                                <i class="fas fa-play-circle mr-2"></i> Tiếp tục học
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -56,4 +75,3 @@
     </div>
 </body>
 </html>
-

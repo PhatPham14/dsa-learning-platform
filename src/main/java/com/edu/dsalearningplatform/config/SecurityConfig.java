@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                         // Allow public endpoints used by the UI and public APIs
                         .requestMatchers(
                                 "/", "/courses", "/login", "/register", "/language",

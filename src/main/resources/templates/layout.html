@@ -1,335 +1,483 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi" th:fragment="layout(title, content)">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title}">DSA Learning Platform</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    <title th:replace="${title}">DSA Learning Platform</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#3b82f6',
+                            dark: '#1e40af',
+                        },
+                        secondary: {
+                            DEFAULT: '#8b5cf6',
+                            dark: '#7c3aed',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn {
+                @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed gap-2;
+            }
+            .btn-primary {
+                @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary;
+            }
+            .btn-outline {
+                @apply border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-200;
+            }
+            .btn-danger {
+                @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+            }
+            .btn-sm {
+                @apply px-3 py-1.5 text-sm;
+            }
+            .card {
+                @apply bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-200;
+            }
+            .label-field {
+                @apply block text-sm font-semibold text-gray-700 mb-1;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
         }
 
-        :root {
-            --primary: #3b82f6;
-            --primary-dark: #1e40af;
-            --secondary: #8b5cf6;
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --text: #1f2937;
-            --text-light: #6b7280;
-            --bg: #f9fafb;
-            --border: #e5e7eb;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            @apply bg-gray-100;
+        }
+        ::-webkit-scrollbar-thumb {
+            @apply bg-gray-300 rounded-full hover:bg-gray-400;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+        /* Markdown styling for chat messages */
+        .prose {
+            color: #374151;
             line-height: 1.6;
         }
-
-        header {
-            background: white;
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        .prose p {
+            margin: 0.5em 0;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        .nav-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        nav {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        nav a:hover {
-            color: var(--primary);
-        }
-
-        .nav-auth {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-secondary {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #7c3aed;
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .language-switcher {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .language-switcher:hover {
-            background: var(--bg);
-        }
-
-        .main {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
+        .prose strong {
             font-weight: 600;
-            color: var(--text);
+            color: #111827;
         }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            font-size: 0.95rem;
-            font-family: inherit;
-            transition: border-color 0.2s;
+        .prose em {
+            font-style: italic;
         }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        .prose code {
+            background: #f3f4f6;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+            font-family: 'Courier New', monospace;
+            color: #ef4444;
         }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .alert {
+        .prose pre {
+            background: #1f2937;
+            color: #f9fafb;
             padding: 1rem;
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-start;
+            overflow-x: auto;
+            margin: 0.75em 0;
         }
-
-        .alert-info {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #93c5fd;
+        .prose pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
         }
-
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5em;
+            margin: 0.5em 0;
         }
-
-        .alert-danger {
-            background: #fee2e2;
-            color: #7f1d1d;
-            border: 1px solid #fca5a5;
+        .prose ol {
+            list-style-type: decimal;
+            padding-left: 1.5em;
+            margin: 0.5em 0;
         }
-
-        .alert-warning {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fcd34d;
+        .prose li {
+            margin: 0.25em 0;
         }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+        .prose h1, .prose h2, .prose h3 {
+            font-weight: 600;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            color: #111827;
         }
-
-        .grid-2 {
-            grid-template-columns: repeat(2, 1fr);
+        .prose h1 { font-size: 1.25em; }
+        .prose h2 { font-size: 1.125em; }
+        .prose h3 { font-size: 1em; }
+        .prose blockquote {
+            border-left: 3px solid #9333ea;
+            padding-left: 1em;
+            margin: 0.75em 0;
+            color: #6b7280;
+            font-style: italic;
         }
-
-        h1, h2, h3, h4, h5, h6 {
-            margin-bottom: 0.5rem;
-            line-height: 1.2;
+        .prose a {
+            color: #2563eb;
+            text-decoration: underline;
         }
-
-        h1 {
-            font-size: 2rem;
+        .prose a:hover {
+            color: #1d4ed8;
         }
-
-        h2 {
-            font-size: 1.5rem;
-        }
-
-        h3 {
-            font-size: 1.25rem;
-        }
-
-        p {
-            margin-bottom: 1rem;
-            color: var(--text-light);
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .mt-2 {
-            margin-top: 1.5rem;
-        }
-
-        .mb-2 {
-            margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-            nav {
-                gap: 1rem;
-                font-size: 0.9rem;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
+        .prose hr {
+            border: 0;
+            border-top: 1px solid #e5e7eb;
+            margin: 1em 0;
         }
     </style>
 </head>
-<body>
-    <header>
-        <div class="container">
-            <div class="nav-wrapper">
-                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
-                <nav>
-                    <a href="/" th:text="#{nav.home}">Home</a>
-                    <a href="/courses" th:text="#{nav.courses}">Courses</a>
-                    <a href="/submit" th:text="#{nav.submit}">Submit</a>
-                    <a href="/dashboard" th:text="#{nav.dashboard}">Dashboard</a>
-                    <a href="/purchase" th:text="#{nav.purchase}">Purchase</a>
-                    <a href="/create" th:text="#{nav.create}">Create</a>
+<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center gap-2 text-2xl font-bold text-primary tracking-tight">
+                        <i class="fas fa-code-branch"></i>
+                        <span th:text="#{nav.brand}">DSA Platform</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="/" class="text-gray-600 hover:text-primary font-medium transition-colors">Trang chủ</a>
+                    <a href="/courses" class="text-gray-600 hover:text-primary font-medium transition-colors">Khóa học</a>
+                    
+                    <!-- Role-specific Navigation -->
+                    <th:block th:if="${user != null}">
+                        <!-- Student Links -->
+                        <th:block th:if="${user.role.name() == 'STUDENT'}">
+                            <a href="/my-courses" class="text-gray-600 hover:text-primary font-medium transition-colors">Khóa học của tôi</a>
+                        </th:block>
+                        
+                        <!-- Instructor Links -->
+                        <th:block th:if="${user.role.name() == 'INSTRUCTOR'}">
+                            <a href="/instructor/courses" class="text-gray-600 hover:text-primary font-medium transition-colors">Bảng điều khiển</a>
+                            <a href="/instructor/dashboard" class="text-gray-600 hover:text-primary font-medium transition-colors">Doanh thu</a>
+                        </th:block>
+                        
+                        <!-- Admin Links -->
+                        <th:block th:if="${user.role.name() == 'ADMIN'}">
+                            <a href="/admin/dashboard" class="text-gray-600 hover:text-primary font-medium transition-colors">Bảng điều khiển</a>
+                            <a href="/admin/users" class="text-gray-600 hover:text-primary font-medium transition-colors">Quản lý người dùng</a>
+                            <a href="/admin/courses" class="text-gray-600 hover:text-primary font-medium transition-colors">Quản lý khóa học</a>
+                        </th:block>
+                    </th:block>
                 </nav>
-                <div class="nav-auth">
-                    <!-- Use GET links to /language so browser referer header is used; avoids CSRF and works repeatedly -->
-                    <div style="margin:0; display:flex; gap:0.25rem; align-items:center;">
-                        <a th:href="@{/language(lang='en')}" class="language-switcher" th:if="${#locale.language == 'vi'}" style="text-decoration:none;">
-                            <span>🌍 English</span>
-                        </a>
-                        <a th:href="@{/language(lang='vi')}" class="language-switcher" th:if="${#locale.language == 'en'}" style="text-decoration:none;">
-                            <span>🌍 Tiếng Việt</span>
-                        </a>
+
+                <!-- Right side: User Profile & Auth -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <th:block th:if="${user == null}">
+                            <a href="/login" class="text-gray-600 hover:text-primary font-medium px-3 py-2">Đăng nhập</a>
+                            <a href="/register" class="btn btn-primary">Đăng ký</a>
+                        </th:block>
+                        
+                        <th:block th:if="${user != null}">
+                            <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
+                                <a href="/profile" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors group">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <span th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
+                                    </div>
+                                    <div class="hidden sm:block">
+                                        <p class="text-xs font-bold text-gray-900 leading-none mb-1" th:text="${user.fullName}">User Name</p>
+                                        <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider" th:text="${user.role}">ROLE</p>
+                                    </div>
+                                </a>
+                                
+                                <div class="h-6 w-px bg-gray-100"></div>
+                                
+                                <a href="/logout" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Đăng xuất">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </a>
+                            </div>
+                        </th:block>
                     </div>
-                    <a href="/login" class="btn btn-primary" th:if="${!user}" th:text="#{nav.login}">Login</a>
-                    <div th:if="${user}" style="display: flex; align-items: center; gap: 1rem;">
-                        <span th:text="${user.fullName}"></span>
-                        <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
-                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2 text-gray-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="main">
-        <th:block th:include="this :: content"></th:block>
+    <main class="flex-grow">
+        <th:block th:replace="${content}"></th:block>
     </main>
 
-    <footer style="text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem;">
-        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
+    <footer class="bg-white border-t border-gray-200 pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div class="col-span-1 md:col-span-2">
+                    <a href="/" class="flex items-center gap-2 text-2xl font-bold text-primary tracking-tight mb-4">
+                        <i class="fas fa-code-branch"></i>
+                        <span>DSA Platform</span>
+                    </a>
+                    <p class="text-gray-500 max-w-sm">
+                        Nền tảng học tập cấu trúc dữ liệu và giải thuật hàng đầu, giúp bạn làm chủ tư duy lập trình và sẵn sàng cho các kỳ phỏng vấn công nghệ.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900 mb-4">Liên kết nhanh</h4>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><a href="/courses" class="hover:text-primary transition-colors">Tất cả khóa học</a></li>
+                        <li><a href="/dashboard" class="hover:text-primary transition-colors">Bảng điều khiển</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900 mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><a href="#" class="hover:text-primary transition-colors">Trung tâm trợ giúp</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Điều khoản dịch vụ</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Chính sách bảo mật</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-sm">&copy; 2026 DSA Learning Platform. All rights reserved.</p>
+                <div class="flex gap-6 text-gray-400">
+                    <a href="#" class="hover:text-gray-600 transition-colors"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="hover:text-gray-600 transition-colors"><i class="fab fa-github"></i></a>
+                    <a href="#" class="hover:text-gray-600 transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
     </footer>
+
+    <!-- AI Chat Assistant (Floating Button & Modal) -->
+    <div id="aiChatContainer">
+        <!-- Floating Chat Button -->
+        <button id="aiChatButton" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 z-50">
+            <i class="fas fa-robot text-xl"></i>
+        </button>
+
+        <!-- Chat Modal -->
+        <div id="aiChatModal" class="hidden fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+            <!-- Chat Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">Trợ lý AI</h3>
+                        <p class="text-xs text-white/80">Chat học tập cùng tôi</p>
+                    </div>
+                </div>
+                <button id="closeChatButton" class="text-white hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chatMessages" class="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                <!-- Welcome Message -->
+                <div class="flex gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                        <i class="fas fa-robot text-xs"></i>
+                    </div>
+                    <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm max-w-[80%]">
+                        <p class="text-sm text-gray-700">Xin chào! 👋 Tôi là trợ lý AI học tập. Bạn có thể chat bình thường, hỏi kiến thức DSA, và khi cần thì bảo tôi tìm khóa học phù hợp.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-4 border-t border-gray-200 bg-white">
+                <form id="chatForm" class="flex gap-2">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        placeholder="Nhập câu hỏi của bạn..." 
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                        required
+                    />
+                    <button 
+                        type="submit" 
+                        id="sendButton"
+                        class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-5 py-2 rounded-full transition-all duration-300 flex items-center justify-center min-w-[44px]"
+                    >
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script>
+        // AI Chat functionality
+        const chatButton = document.getElementById('aiChatButton');
+        const chatModal = document.getElementById('aiChatModal');
+        const closeChatButton = document.getElementById('closeChatButton');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const sendButton = document.getElementById('sendButton');
+
+        // Toggle chat modal
+        chatButton.addEventListener('click', () => {
+            chatModal.classList.toggle('hidden');
+            if (!chatModal.classList.contains('hidden')) {
+                chatInput.focus();
+            }
+        });
+
+        closeChatButton.addEventListener('click', () => {
+            chatModal.classList.add('hidden');
+        });
+
+        // Parse markdown to HTML
+        function parseMarkdown(text) {
+            if (typeof marked !== 'undefined') {
+                return marked.parse(text, {
+                    breaks: true,
+                    gfm: true,
+                    sanitize: false
+                });
+            }
+            // Fallback: simple markdown parsing
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Add message to chat
+        function addMessage(text, isUser = false, courses = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex gap-3 ' + (isUser ? 'justify-end' : '');
+
+            if (!isUser) {
+                // Parse markdown to HTML for bot messages
+                const htmlContent = parseMarkdown(text);
+                
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                        <i class="fas fa-robot text-xs"></i>
+                    </div>
+                    <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm max-w-[80%]">
+                        <div class="text-sm text-gray-700 prose prose-sm max-w-none">${htmlContent}</div>
+                        ${courses && courses.length > 0 ? createCoursesList(courses) : ''}
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-[80%]">
+                        <p class="text-sm">${text}</p>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function createCoursesList(courses) {
+            if (!courses || courses.length === 0) return '';
+            
+            let html = '<div class="mt-3 space-y-2">';
+            courses.forEach(course => {
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-3 hover:border-purple-300 transition-colors bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-900 mb-1">${course.title}</h4>
+                        <p class="text-xs text-gray-600 mb-2 line-clamp-2">${course.description || ''}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-purple-600">${course.price}</span>
+                            <a href="/courses/${course.courseId}" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                Xem chi tiết →
+                            </a>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-user text-[10px]"></i> ${course.instructor}
+                        </p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        // Handle form submission
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, true);
+            chatInput.value = '';
+
+            // Disable input while processing
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                // Call AI API
+                const response = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                // Add AI response
+                addMessage(data.message, false, data.courses);
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Xin lỗi, tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.', false);
+            } finally {
+                // Re-enable input
+                chatInput.disabled = false;
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                chatInput.focus();
+            }
+        });
+    </script>
 </body>
 </html>

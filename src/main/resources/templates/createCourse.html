@@ -1,198 +1,330 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="#{createCourse.title}">Create Course</title>
+    <title th:text="#{createCourse.title}">Tạo khóa học mới - DSA Platform</title>
     <!-- CSRF Meta Tags for AJAX -->
     <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}" />
-    
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
-        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
-        nav { display: flex; gap: 2rem; }
-        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
-        .nav-auth { display: flex; gap: 1rem; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
-        .btn-secondary { background: var(--secondary); color: white; width: 100%; }
-        .btn-secondary:hover:not(:disabled) { background: #7c3aed; }
-        .btn-danger { background: #ef4444; color: white; }
-        .main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        input, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; }
-        textarea { resize: vertical; min-height: 100px; }
-        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: white; }
-        .header-card { background: linear-gradient(135deg, var(--secondary) 0%, #7c3aed 100%); color: white; }
-        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
-    </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="nav-wrapper">
-                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
-                <nav>
-                    <a href="/" th:text="#{nav.home}">Home</a>
-                    <a href="/create" th:text="#{nav.create}">Create</a>
-                </nav>
-                <div class="nav-auth">
-                    <form th:action="@{/language}" method="post" style="margin: 0;">
-                        <!-- Safe CSRF handling -->
-                        <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                         <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">English</button>
-                         <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">Tiếng Việt</button>
-                     </form>
-                    <span th:text="${user.fullName}" th:if="${user != null}"></span>
-                    <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}" th:if="${user != null}">Logout</a>
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="bg-white border-b border-gray-200 mb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary text-xl">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" th:text="#{createCourse.createNewCourse}">Tạo khóa học mới</h1>
+                        <p class="text-sm text-gray-500 mt-1" th:text="#{createCourse.shareExpertise}">Chia sẻ kiến thức và kinh nghiệm của bạn với cộng đồng.</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </header>
 
-    <main class="main">
-        <div class="card header-card">
-            <h1 th:text="#{createCourse.createNewCourse}">Create New Course</h1>
-            <p th:text="#{createCourse.shareExpertise}" style="color: rgba(255,255,255,0.9); margin: 0;">Share your expertise with students</p>
-        </div>
-
-        <div class="card" th:if="${user == null}">
-            <p style="color: var(--text-light);" th:text="#{createCourse.loginRequired2}">You must be logged in to create a course</p>
-            <a href="/login" class="btn btn-secondary" th:text="#{nav.login}" style="display: inline-block; width: auto;">Login</a>
-        </div>
-
-        <div class="card" th:if="${user != null}">
-            <form id="create-course-form">
-                <div id="create-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
-                <div id="create-success" style="display:none; margin-bottom:0.75rem; color:#10b981; font-size:0.9rem;"></div>
-
-                <input type="hidden" id="instructorId" th:value="${user.userId}" />
-
-                 <div class="form-group">
-                    <label for="title" th:text="#{createCourse.courseTitle}">Course Title</label>
-                    <input type="text" id="title" name="title" th:placeholder="#{createCourse.courseTitlePlaceholder}" required="required" />
-                 </div>
-                <div class="form-group">
-                    <label for="description" th:text="#{createCourse.description}">Description</label>
-                    <textarea id="description" name="description" th:placeholder="#{createCourse.descriptionPlaceholder}" required="required"></textarea>
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <!-- Unauthorized State -->
+            <div class="card p-8 text-center" th:if="${user == null}">
+                <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                    <i class="fas fa-lock text-xl"></i>
                 </div>
-                <div class="form-group">
-                    <label for="price" th:text="#{createCourse.price}">Price (VND)</label>
-                    <input type="number" id="price" name="price" th:placeholder="#{createCourse.pricePlaceholder}" min="0" step="1" required="required" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="courseImage" th:text="#{createCourse.imageLabel}">Course Image (Max 1MB)</label>
-                    <input type="file" id="courseImage" accept="image/*" />
-                    <div id="imagePreview" style="margin-top: 10px; display: none;">
-                        <img id="preview" src="" th:alt="#{createCourse.imagePreview}" style="max-width: 100%; max-height: 200px; border-radius: 0.5rem; border: 1px solid var(--border);" />
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Yêu cầu đăng nhập</h3>
+                <p class="text-gray-500 mb-6" th:text="#{createCourse.loginRequired2}">Bạn cần đăng nhập với tài khoản Giảng viên để tạo khóa học.</p>
+                <a href="/login" class="btn btn-primary px-8">Đăng nhập ngay</a>
+            </div>
+
+            <!-- Create Form -->
+            <div class="card p-8 shadow-xl border-none ring-1 ring-gray-200" th:if="${user != null}">
+                <form id="create-course-form" class="space-y-6">
+                    <div id="create-error" class="hidden p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm animate-in fade-in"></div>
+                    <div id="create-success" class="hidden p-4 rounded-xl bg-green-50 border border-green-100 text-green-700 text-sm animate-in fade-in"></div>
+
+                    <input type="hidden" id="instructorId" th:value="${user.userId}" />
+
+                    <div class="form-group">
+                        <label for="title" class="label-field" th:text="#{createCourse.courseTitle}">Tiêu đề khóa học</label>
+                        <input type="text" id="title" name="title" class="input-field" th:placeholder="#{createCourse.courseTitlePlaceholder}" required>
                     </div>
-                </div>
 
-                <button type="submit" class="btn btn-secondary" id="create-btn" th:text="#{createCourse.createCourseBtn}">Create Course</button>
-            </form>
+                    <div class="form-group">
+                        <label for="description" class="label-field" th:text="#{createCourse.description}">Mô tả chi tiết</label>
+                        <textarea id="description" name="description" class="input-field min-h-[150px]" th:placeholder="#{createCourse.descriptionPlaceholder}" required></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label for="price" class="label-field" th:text="#{createCourse.price}">Giá bán (VND)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-400 text-sm">₫</span>
+                                </div>
+                                <input type="number" id="price" name="price" class="input-field pl-8" th:placeholder="#{createCourse.pricePlaceholder}" min="0" step="1000" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="label-field">Danh mục (Sắp ra mắt)</label>
+                            <select class="input-field bg-gray-50 cursor-not-allowed" disabled>
+                                <option>Cấu trúc dữ liệu</option>
+                                <option>Giải thuật</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label-field" th:text="#{createCourse.imageLabel}">Hình ảnh minh họa</label>
+                        <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-2xl hover:border-primary transition-colors group cursor-pointer relative overflow-hidden">
+                            <input type="file" id="courseImage" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                            <div class="space-y-1 text-center" id="upload-placeholder">
+                                <i class="fas fa-image text-4xl text-gray-300 group-hover:text-primary transition-colors mb-2"></i>
+                                <div class="flex text-sm text-gray-600">
+                                    <span class="relative font-bold text-primary hover:text-primary-dark">Tải lên tệp tin</span>
+                                    <p class="pl-1">hoặc kéo thả vào đây</p>
+                                </div>
+                                <p class="text-xs text-gray-400">PNG, JPG, GIF tối đa 1MB</p>
+                            </div>
+                            <div id="imagePreview" class="hidden absolute inset-0 bg-white">
+                                <img id="preview" src="" class="w-full h-full object-cover" />
+                                <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold bg-black/50 px-3 py-1 rounded-full">Thay đổi ảnh</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="label-field m-0">Nội dung khóa học</label>
+                            <button type="button" id="add-session-btn" class="btn btn-outline btn-sm">
+                                <i class="fas fa-plus"></i> Thêm chương
+                            </button>
+                        </div>
+
+                        <div id="sessions-container" class="space-y-4"></div>
+                        <p class="text-xs text-gray-400 mt-2">Bạn có thể thêm video, quiz và bài tập ngay khi tạo khóa học.</p>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-100 flex items-center justify-between gap-4">
+                        <p class="text-xs text-gray-400 italic max-w-md">* Khóa học sẽ được gửi đến Quản trị viên để kiểm duyệt trước khi hiển thị công khai.</p>
+                        <div class="flex gap-3">
+                            <a href="/instructor/courses" class="btn btn-outline">Hủy bỏ</a>
+                            <button type="submit" id="create-btn" class="btn btn-primary px-8 shadow-lg shadow-primary/20">
+                                <span th:text="#{createCourse.createCourseBtn}">Tạo khóa học</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    </main>
 
-    <footer>
-        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
-    </footer>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const fileInput = document.getElementById('courseImage');
+                const previewDiv = document.getElementById('imagePreview');
+                const previewImg = document.getElementById('preview');
+                const placeholder = document.getElementById('upload-placeholder');
+                const sessionsContainer = document.getElementById('sessions-container');
+                const addSessionBtn = document.getElementById('add-session-btn');
+                let base64String = "";
+                let sessionIndex = 0;
 
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('courseImage');
-            const previewDiv = document.getElementById('imagePreview');
-            const previewImg = document.getElementById('preview');
-            let base64String = "";
+                function createItemRow(type, parentIndex) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `${type}-item flex gap-2 items-center mt-2`;
 
-            if(fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        if (file.size > 1024 * 1024) {
-                            alert("File too large! Max 1MB.");
-                            this.value = "";
-                            return;
-                        }
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            previewImg.src = e.target.result;
-                            previewDiv.style.display = 'block';
-                            base64String = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-
-            const form = document.getElementById('create-course-form');
-            if(form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const btn = document.getElementById('create-btn');
-                    const errorDiv = document.getElementById('create-error');
-                    const successDiv = document.getElementById('create-success');
-                    
-                    btn.disabled = true;
-                    btn.textContent = /*[[#{createCourse.creating}]]*/ "Creating...";
-                    errorDiv.style.display = 'none';
-                    successDiv.style.display = 'none';
-
-                    const data = {
-                        title: document.getElementById('title').value,
-                        description: document.getElementById('description').value,
-                        price: parseFloat(document.getElementById('price').value),
-                        instructorId: parseInt(document.getElementById('instructorId').value),
-                        imageBase64: base64String
-                    };
-
-                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
-                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
-                    
-                    const headers = {
-                        'Content-Type': 'application/json'
-                    };
-                    if (csrfToken && csrfHeader) {
-                        headers[csrfHeader] = csrfToken;
+                    let fields = '';
+                    if (type === 'video') {
+                        fields = `
+                            <input type="text" class="input-field text-sm video-title" placeholder="Tiêu đề video" />
+                            <input type="text" class="input-field text-sm video-url" placeholder="URL video" />
+                            <input type="number" class="input-field text-sm video-duration max-w-[140px]" placeholder="Thời lượng" min="1" />
+                        `;
+                    } else if (type === 'quiz') {
+                        fields = `
+                            <input type="text" class="input-field text-sm quiz-title" placeholder="Tiêu đề quiz" />
+                            <input type="text" class="input-field text-sm quiz-description" placeholder="Mô tả (tuỳ chọn)" />
+                        `;
+                    } else {
+                        fields = `
+                            <input type="text" class="input-field text-sm assignment-title" placeholder="Tiêu đề bài tập" />
+                            <input type="text" class="input-field text-sm assignment-description" placeholder="Mô tả (tuỳ chọn)" />
+                        `;
                     }
 
-                    fetch('/api/courses', {
-                        method: 'POST',
-                        headers: headers,
-                        body: JSON.stringify(data)
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        throw new Error("Failed to create course");
-                    })
-                    .then(result => {
-                        successDiv.textContent = /*[[#{createCourse.courseCreationSuccess}]]*/ "Course Created Successfully!";
-                        successDiv.style.display = 'block';
-                        setTimeout(() => {
-                            window.location.href = '/instructor/courses'; // Redirect to instructor courses page
-                        }, 1500);
-                    })
-                    .catch(err => {
-                        errorDiv.textContent = /*[[#{createCourse.courseCreationFailed}]]*/ "Failed to create course";
-                        errorDiv.style.display = 'block';
-                        btn.disabled = false;
-                        btn.textContent = /*[[#{createCourse.createCourseBtn}]]*/ "Create Course";
+                    wrapper.innerHTML = `
+                        ${fields}
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn"><i class="fas fa-trash"></i></button>
+                    `;
+
+                    wrapper.querySelector('.remove-item-btn').addEventListener('click', function() {
+                        wrapper.remove();
                     });
-                });
-            }
-        });
-        /*]]>*/
-    </script>
+
+                    return wrapper;
+                }
+
+                function createSessionBlock(index) {
+                    const block = document.createElement('div');
+                    block.className = 'session-block p-4 rounded-xl border border-gray-200 bg-gray-50';
+                    block.dataset.index = index;
+
+                    block.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-gray-900">Chương <span class="session-number">${index + 1}</span></h4>
+                            <button type="button" class="btn btn-danger btn-sm remove-session-btn"><i class="fas fa-trash"></i> Xóa chương</button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                            <input type="text" class="input-field session-title md:col-span-2" placeholder="Tiêu đề chương" />
+                            <input type="number" class="input-field session-order" value="${index + 1}" min="1" placeholder="Thứ tự" />
+                        </div>
+                        <textarea class="input-field session-description mb-4" placeholder="Mô tả chương" rows="2"></textarea>
+
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-gray-500">Videos</p>
+                                    <button type="button" class="btn btn-outline btn-sm add-video-btn"><i class="fas fa-plus"></i> Thêm video</button>
+                                </div>
+                                <div class="video-list"></div>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-gray-500">Quizzes</p>
+                                    <button type="button" class="btn btn-outline btn-sm add-quiz-btn"><i class="fas fa-plus"></i> Thêm quiz</button>
+                                </div>
+                                <div class="quiz-list"></div>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-gray-500">Assignments</p>
+                                    <button type="button" class="btn btn-outline btn-sm add-assignment-btn"><i class="fas fa-plus"></i> Thêm bài tập</button>
+                                </div>
+                                <div class="assignment-list"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    block.querySelector('.remove-session-btn').addEventListener('click', function() {
+                        block.remove();
+                    });
+
+                    block.querySelector('.add-video-btn').addEventListener('click', function() {
+                        block.querySelector('.video-list').appendChild(createItemRow('video', index));
+                    });
+                    block.querySelector('.add-quiz-btn').addEventListener('click', function() {
+                        block.querySelector('.quiz-list').appendChild(createItemRow('quiz', index));
+                    });
+                    block.querySelector('.add-assignment-btn').addEventListener('click', function() {
+                        block.querySelector('.assignment-list').appendChild(createItemRow('assignment', index));
+                    });
+
+                    return block;
+                }
+
+                if (addSessionBtn) {
+                    addSessionBtn.addEventListener('click', function() {
+                        sessionsContainer.appendChild(createSessionBlock(sessionIndex));
+                        sessionIndex += 1;
+                    });
+                }
+
+                if(fileInput) {
+                    fileInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (file) {
+                            if (file.size > 1024 * 1024) {
+                                alert("Kích thước ảnh quá lớn! Tối đa 1MB.");
+                                this.value = "";
+                                return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                previewImg.src = e.target.result;
+                                previewDiv.classList.remove('hidden');
+                                placeholder.classList.add('hidden');
+                                base64String = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+
+                const form = document.getElementById('create-course-form');
+                if(form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        const btn = document.getElementById('create-btn');
+                        const errorDiv = document.getElementById('create-error');
+                        const successDiv = document.getElementById('create-success');
+                        
+                        btn.disabled = true;
+                        const originalContent = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Đang xử lý...';
+                        
+                        errorDiv.classList.add('hidden');
+                        successDiv.classList.add('hidden');
+
+                        const data = {
+                            title: document.getElementById('title').value,
+                            description: document.getElementById('description').value,
+                            price: parseFloat(document.getElementById('price').value),
+                            instructorId: parseInt(document.getElementById('instructorId').value),
+                            imageBase64: base64String,
+                            sessions: Array.from(document.querySelectorAll('.session-block')).map(sessionBlock => ({
+                                title: sessionBlock.querySelector('.session-title')?.value?.trim(),
+                                description: sessionBlock.querySelector('.session-description')?.value?.trim(),
+                                sessionOrder: parseInt(sessionBlock.querySelector('.session-order')?.value || '1'),
+                                videos: Array.from(sessionBlock.querySelectorAll('.video-item')).map(v => ({
+                                    title: v.querySelector('.video-title')?.value?.trim(),
+                                    videoUrl: v.querySelector('.video-url')?.value?.trim(),
+                                    duration: parseInt(v.querySelector('.video-duration')?.value || '0')
+                                })).filter(v => v.title && v.videoUrl),
+                                quizzes: Array.from(sessionBlock.querySelectorAll('.quiz-item')).map(q => ({
+                                    title: q.querySelector('.quiz-title')?.value?.trim(),
+                                    description: q.querySelector('.quiz-description')?.value?.trim()
+                                })).filter(q => q.title),
+                                assignments: Array.from(sessionBlock.querySelectorAll('.assignment-item')).map(a => ({
+                                    title: a.querySelector('.assignment-title')?.value?.trim(),
+                                    description: a.querySelector('.assignment-description')?.value?.trim()
+                                })).filter(a => a.title)
+                            })).filter(s => s.title)
+                        };
+
+                        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+                        
+                        const headers = { 'Content-Type': 'application/json' };
+                        if (csrfToken && csrfHeader) { headers[csrfHeader] = csrfToken; }
+
+                        fetch('/api/courses', {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(data)
+                        })
+                        .then(response => {
+                            if (response.ok) return response.json();
+                            return response.json().then(err => { throw new Error(err.message || "Không thể tạo khóa học"); });
+                        })
+                        .then(result => {
+                            successDiv.textContent = "Khóa học đã được tạo thành công! Đang chuyển hướng...";
+                            successDiv.classList.remove('hidden');
+                            setTimeout(() => { window.location.href = '/instructor/courses'; }, 1500);
+                        })
+                        .catch(err => {
+                            errorDiv.textContent = err.message || "Có lỗi xảy ra khi tạo khóa học.";
+                            errorDiv.classList.remove('hidden');
+                            btn.disabled = false;
+                            btn.innerHTML = originalContent;
+                        });
+                    });
+                }
+            });
+        </script>
+    </div>
 </body>
 </html>

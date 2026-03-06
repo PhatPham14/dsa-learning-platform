@@ -111,6 +111,21 @@ public class InstructorController {
         return "instructor/course-editor";
     }
 
+    @PostMapping("/courses/{courseId}/delete")
+    public String deleteCourse(@PathVariable Long courseId, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(request);
+        if (user == null || !isInstructor(user)) return "redirect:/login";
+
+        Course course = courseService.getCourseById(courseId);
+        if (course != null && course.getInstructor() != null && course.getInstructor().getUserId().equals(user.getUserId())) {
+            courseService.deleteCourse(courseId);
+            redirectAttributes.addFlashAttribute("success", "Khóa học đã được xóa thành công");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền xóa khóa học này hoặc khóa học không tồn tại");
+        }
+        return "redirect:/instructor/courses";
+    }
+
     // --- Session Management ---
 
     @GetMapping("/sessions/{sessionId}/edit")
@@ -170,8 +185,6 @@ public class InstructorController {
         User user = getCurrentUser(request);
         if (user == null || !isInstructor(user)) return "redirect:/login";
 
-        // Ideally check ownership of session via course, skipping for brevity but relying on courseId passed or lookup
-        // Robust way: get session -> get course -> check instructor
         Session session = courseService.getSessionById(sessionId);
         if (session != null && session.getCourse().getInstructor().getUserId().equals(user.getUserId())) {
              courseService.deleteSession(sessionId);

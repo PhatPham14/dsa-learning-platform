@@ -1,5 +1,6 @@
 package com.edu.dsalearningplatform.controller;
 
+import com.edu.dsalearningplatform.dto.request.UpdateProfileRequest;
 import com.edu.dsalearningplatform.entity.User;
 import com.edu.dsalearningplatform.enums.UserRole;
 import com.edu.dsalearningplatform.security.jwt.JwtUtils;
@@ -349,6 +350,38 @@ public class ViewController {
         return "profile";
     }
 
+    @PostMapping("/profile/update")
+    public String updateProfile(HttpServletRequest request,
+                                @RequestParam String fullName,
+                                @RequestParam String email,
+                                @RequestParam String phone,
+                                @RequestParam(required = false) String dateOfBirth,
+                                @RequestParam(required = false) String gender,
+                                @RequestParam(required = false) String address,
+                                RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(request);
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            UpdateProfileRequest updateProfileRequest = new UpdateProfileRequest();
+            updateProfileRequest.setFullName(fullName);
+            updateProfileRequest.setEmail(email);
+            updateProfileRequest.setPhone(phone);
+            updateProfileRequest.setDateOfBirth(dateOfBirth);
+            updateProfileRequest.setGender(gender);
+            updateProfileRequest.setAddress(address);
+
+            userService.updateMyProfile(user, updateProfileRequest);
+            redirectAttributes.addFlashAttribute("message", "Cập nhật hồ sơ thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Cập nhật hồ sơ thất bại: " + e.getMessage());
+        }
+
+        return "redirect:/profile";
+    }
+
     @GetMapping("/my-courses")
     public String myCourses(HttpServletRequest request, Model model) {
         User user = getCurrentUser(request);
@@ -405,32 +438,63 @@ public class ViewController {
         return "learning";
     }
 
-    @GetMapping("/language")
-    public String changeLanguage(@RequestParam(name = "lang") String lang,
-                                 HttpServletRequest request) {
-        // LocaleChangeInterceptor sẽ xử lý thay đổi locale và set cookie dựa trên tham số lang
-        // Ở bước redirect, KHÔNG cần giữ lại query lang nữa để tránh bị cộng dồn trên URL
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            try {
-                java.net.URI uri = new java.net.URI(referer);
-                String path = uri.getPath();
-                if (path == null || path.isEmpty()) {
-                    path = "/";
-                }
-                // Redirect về lại đúng path ban đầu, KHÔNG kèm query
-                return "redirect:" + path;
-            } catch (Exception e) {
-                // Nếu parse lỗi, quay về trang chủ
+    @GetMapping("/admin/users")
+    public String adminUsers(HttpServletRequest request, Model model) {
+        try {
+            User user = getCurrentUser(request);
+            if (user == null) {
+                return "redirect:/login";
+            }
+            if (user.getRole() != UserRole.ADMIN) {
                 return "redirect:/";
             }
+            model.addAttribute("user", user);
+            
+            // Get all users with default pagination and no filters
+            var users = userService.getAllUsers(null, null, null, null, null, 0, 1000, "userId,desc");
+            model.addAttribute("users", users);
+            long studentCount = users.stream().filter(u -> "STUDENT".equalsIgnoreCase(u.getRole())).count();
+            long instructorCount = users.stream().filter(u -> "INSTRUCTOR".equalsIgnoreCase(u.getRole())).count();
+            long activeUserCount = users.stream().filter(u -> Boolean.TRUE.equals(u.getActive())).count();
+            model.addAttribute("studentCount", studentCount);
+            model.addAttribute("instructorCount", instructorCount);
+            model.addAttribute("activeUserCount", activeUserCount);
+            
+            return "admin/users";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error loading users: " + e.getMessage());
+            return "error";
         }
-        return "redirect:/";
     }
 
-    @PostMapping("/language")
-    public String changeLanguagePost(@RequestParam(name = "lang") String lang, HttpServletRequest request) {
-        // Delegate to the same logic as GET /language so UI can POST with CSRF token
-        return changeLanguage(lang, request);
+    @GetMapping("/admin/courses")
+    public String adminCourses(HttpServletRequest request, Model model) {
+        try {
+            User user = getCurrentUser(request);
+            if (user == null) {
+                return "redirect:/login";
+            }
+            if (user.getRole() != UserRole.ADMIN) {
+                return "redirect:/";
+            }
+            model.addAttribute("user", user);
+            
+            // Get all courses including inactive ones
+            var courses = courseService.getAllCourses();
+            model.addAttribute("courses", courses);
+                long activeCourseCount = courses.stream().filter(com.edu.dsalearningplatform.entity.Course::isActive).count();
+                long inactiveCourseCount = courses.size() - activeCourseCount;
+                int totalEnrollments = 0;
+                model.addAttribute("activeCourseCount", activeCourseCount);
+                model.addAttribute("inactiveCourseCount", inactiveCourseCount);
+                model.addAttribute("totalEnrollments", totalEnrollments);
+            
+            return "admin/courses";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error loading courses: " + e.getMessage());
+            return "error";
+        }
     }
 }

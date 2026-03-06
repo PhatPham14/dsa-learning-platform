@@ -106,7 +106,8 @@ public class UserServiceImpl implements UserService {
         }
 
         // Phân trang và sắp xếp
-        String[] sortDetails = sortStr.split(",");
+        String safeSortStr = (sortStr == null || sortStr.isBlank()) ? "userId,desc" : sortStr;
+        String[] sortDetails = safeSortStr.split(",");
         String sortByProperty = sortDetails[0];
         Sort.Direction sortDirection = Sort.Direction.ASC;
 
@@ -165,6 +166,15 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public void updateUserRole(Integer id, UserRole role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setRole(role);
+        userRepository.save(user);
+    }
+
+    @Override
     public void updateUserStatus(Integer id, boolean isActive) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -187,13 +197,54 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getMyProfile(User loggedInUser) {
-        return null;
+        if (loggedInUser == null || loggedInUser.getUserId() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
+        }
+
+        User user = userRepository.findById(loggedInUser.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return convertToDto(user);
     }
 
 
 
     @Override
     public UserResponse updateMyProfile(User loggedInUser, UpdateProfileRequest request) {
-        return null;
+        if (loggedInUser == null || loggedInUser.getUserId() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
+        }
+        if (request == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request");
+        }
+
+        User user = userRepository.findById(loggedInUser.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            user.setFullName(request.getFullName().trim());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            String newEmail = request.getEmail().trim();
+            if (!newEmail.equalsIgnoreCase(user.getEmail()) && userRepository.existsByEmail(newEmail)) {
+                throw new UserAlreadyExistsException("email", "User with this email already exists");
+            }
+            user.setEmail(newEmail);
+        }
+
+        if (request.getPhone() != null && !request.getPhone().isBlank()) {
+            String newPhone = request.getPhone().trim();
+            if (!newPhone.equals(user.getPhone()) && userRepository.existsByPhone(newPhone)) {
+                throw new UserAlreadyExistsException("phone", "User with this phone already exists");
+            }
+            user.setPhone(newPhone);
+        }
+
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setGender(request.getGender());
+        user.setAddress(request.getAddress());
+
+        User savedUser = userRepository.save(user);
+        return convertToDto(savedUser);
     }
 }

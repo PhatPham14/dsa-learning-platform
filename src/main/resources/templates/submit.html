@@ -1,138 +1,164 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{submit.title}">Submit</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #3b82f6; --primary-dark: #1e40af; --secondary: #8b5cf6; --text: #1f2937; --text-light: #6b7280; --bg: #f9fafb; --border: #e5e7eb; --success: #10b981; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-        header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; }
-        .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
-        nav { display: flex; gap: 2rem; }
-        nav a { text-decoration: none; color: var(--text); font-weight: 500; }
-        .nav-auth { display: flex; gap: 1rem; }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
-        .btn-success { background: var(--success); color: white; width: 100%; }
-        .btn-success:hover:not(:disabled) { background: #059669; }
-        .btn-danger { background: #ef4444; color: white; }
-        .main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-family: 'Courier New', monospace; }
-        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-        footer { text-align: center; padding: 2rem; background: white; border-top: 1px solid var(--border); margin-top: 3rem; }
-    </style>
+    <title th:text="#{submit.title}">Luyện tập Code - DSA Platform</title>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="nav-wrapper">
-                <a href="/" class="nav-brand" th:text="#{nav.brand}">DSA Learning Platform</a>
-                <nav>
-                    <a href="/" th:text="#{nav.home}">Home</a>
-                    <a href="/courses" th:text="#{nav.courses}">Courses</a>
-                    <a href="/submit" th:text="#{nav.submit}">Submit</a>
-                </nav>
-                <div class="nav-auth">
-                    <form th:action="@{/language}" method="post" style="margin: 0;">
-                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <button type="submit" name="lang" value="en" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'vi'}">🌍 English</button>
-                        <button type="submit" name="lang" value="vi" style="border: none; background: none; cursor: pointer;" th:if="${#locale.language == 'en'}">🌍 Tiếng Việt</button>
-                    </form>
-                    <span th:text="${user.fullName}" th:if="${user}"></span>
-                    <a href="/logout" class="btn btn-danger" th:text="#{nav.logout}" th:if="${user}">Logout</a>
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="bg-white border-b border-gray-200 mb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary text-xl">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" th:text="#{submit.title}">Nộp bài thực hành</h1>
+                        <p class="text-sm text-gray-500 mt-1" th:text="#{submit.subtitle}">Rèn luyện kỹ năng lập trình Python của bạn.</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </header>
 
-    <main class="main">
-        <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white;">
-            <h1 th:text="#{submit.title}" style="color: white;">Submit Your Code</h1>
-            <p th:text="#{submit.subtitle}" style="color: rgba(255,255,255,0.9);">Practice coding problems</p>
-        </div>
-
-        <div class="card">
-            <form id="submit-form">
-                <div id="submit-error" style="display:none; margin-bottom:0.75rem; color:#b91c1c; font-size:0.9rem;"></div>
-                <div id="submit-success" style="display:none; margin-bottom:0.75rem; color:#10b981; font-size:0.9rem;"></div>
-
-                <input type="hidden" id="studentId" th:value="${user.userId}">
-                <input type="hidden" id="courseId" th:value="${courseId}">
-
-                <div class="form-group">
-                    <label for="code" th:text="#{submit.pythonLabel}">Python Code</label>
-                    <textarea id="code" name="code" th:placeholder="#{submit.enterPython}" required></textarea>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+            <div class="card overflow-hidden border-none ring-1 ring-gray-200 shadow-xl">
+                <!-- Editor Toolbar -->
+                <div class="bg-gray-800 px-4 py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="flex gap-1.5 mr-4">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <span class="text-xs font-mono text-gray-400">solution.py</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Python 3.x</span>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-success" id="submit-btn" th:text="#{submit.submit}">Submit Code</button>
-            </form>
+
+                <form id="submit-form">
+                    <div id="submit-error" class="hidden m-4 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm animate-in fade-in"></div>
+                    <div id="submit-success" class="hidden m-4 p-4 rounded-xl bg-green-50 border border-green-100 text-green-700 text-sm animate-in fade-in"></div>
+
+                    <input type="hidden" id="studentId" th:value="${user.userId}">
+                    <input type="hidden" id="courseId" th:value="${courseId}">
+
+                    <div class="relative">
+                        <textarea id="code" name="code" 
+                                  class="w-full min-h-[400px] p-6 bg-gray-900 text-gray-100 font-mono text-sm leading-relaxed outline-none border-none resize-none focus:ring-0" 
+                                  th:placeholder="#{submit.enterPython}" 
+                                  required></textarea>
+                        
+                        <!-- Line numbers placeholder (Visual only) -->
+                        <div class="absolute left-0 top-0 bottom-0 w-10 bg-gray-800/50 border-r border-gray-700 flex flex-col items-center pt-6 text-[10px] text-gray-500 select-none pointer-events-none">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center gap-4 text-xs text-gray-500">
+                            <span class="flex items-center gap-1"><i class="fas fa-info-circle"></i> Đảm bảo code của bạn tuân thủ PEP 8.</span>
+                        </div>
+                        <button type="submit" id="submit-btn" class="btn btn-primary px-10 shadow-lg shadow-primary/20">
+                            <span th:text="#{submit.submit}">Nộp bài giải</span>
+                            <i class="fas fa-paper-plane ml-2 text-xs"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tips Section -->
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-6 bg-blue-50/50 border-blue-100 border">
+                    <h3 class="text-sm font-bold text-blue-900 mb-2">Lưu ý khi nộp bài</h3>
+                    <ul class="text-xs text-blue-700 space-y-2 list-disc pl-4">
+                        <li>Kiểm tra kỹ các trường hợp biên (edge cases).</li>
+                        <li>Sử dụng tên biến có ý nghĩa.</li>
+                        <li>Tránh sử dụng các thư viện không phổ biến.</li>
+                    </ul>
+                </div>
+                <div class="card p-6 bg-amber-50/50 border-amber-100 border">
+                    <h3 class="text-sm font-bold text-amber-900 mb-2">Trạng thái chấm bài</h3>
+                    <p class="text-xs text-amber-700 leading-relaxed">
+                        Hệ thống sẽ tự động chấm điểm và phản hồi ngay lập tức sau khi bạn nhấn nút nộp bài.
+                    </p>
+                </div>
+            </div>
         </div>
-    </main>
 
-    <footer>
-        <p>&copy; 2026 DSA Learning Platform. All rights reserved.</p>
-    </footer>
+        <script>
+            (function() {
+                const form = document.getElementById('submit-form');
+                const submitBtn = document.getElementById('submit-btn');
+                const errorBox = document.getElementById('submit-error');
+                const successBox = document.getElementById('submit-success');
+                const textarea = document.getElementById('code');
 
-    <script>
-        (function() {
-            const form = document.getElementById('submit-form');
-            const submitBtn = document.getElementById('submit-btn');
-            const errorBox = document.getElementById('submit-error');
-            const successBox = document.getElementById('submit-success');
+                if (!form) return;
 
-            if (!form) return;
-
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                errorBox.style.display = 'none';
-                successBox.style.display = 'none';
-
-                const studentId = document.getElementById('studentId').value;
-                const courseId = document.getElementById('courseId').value;
-                const code = document.getElementById('code').value;
-
-                if (!courseId) {
-                    errorBox.textContent = '[[#{submit.error.noCourse}]]';
-                    errorBox.style.display = 'block';
-                    return;
-                }
-
-                submitBtn.disabled = true;
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = 'Đang nộp bài...';
-
-                try {
-                    const url = `/api/submissions?courseId=${courseId}&studentId=${studentId}`;
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain'
-                        },
-                        body: code
-                    });
-
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        errorBox.textContent = err.message || 'Nộp bài thất bại.';
-                        errorBox.style.display = 'block';
-                    } else {
-                        successBox.textContent = 'Nộp bài thành công!';
-                        successBox.style.display = 'block';
+                // Tab support in textarea
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
+                        this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+                        this.selectionStart = this.selectionEnd = start + 4;
                     }
-                } catch (err) {
-                    errorBox.textContent = 'Có lỗi xảy ra.';
-                    errorBox.style.display = 'block';
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
-                }
-            });
-        })();
-    </script>
+                });
+
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    errorBox.classList.add('hidden');
+                    successBox.classList.add('hidden');
+
+                    const studentId = document.getElementById('studentId').value;
+                    const courseId = document.getElementById('courseId').value;
+                    const code = document.getElementById('code').value;
+
+                    if (!courseId) {
+                        errorBox.textContent = 'Vui lòng chọn khóa học để nộp bài.';
+                        errorBox.classList.remove('hidden');
+                        return;
+                    }
+
+                    submitBtn.disabled = true;
+                    const originalContent = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Đang nộp bài...';
+
+                    try {
+                        const url = `/api/submissions?courseId=${courseId}&studentId=${studentId}`;
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain' },
+                            body: code
+                        });
+
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            errorBox.textContent = err.message || 'Nộp bài thất bại. Vui lòng thử lại.';
+                            errorBox.classList.remove('hidden');
+                        } else {
+                            successBox.textContent = 'Chúc mừng! Bạn đã nộp bài thành công.';
+                            successBox.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        errorBox.textContent = 'Có lỗi xảy ra kết nối đến máy chủ.';
+                        errorBox.classList.remove('hidden');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalContent;
+                    }
+                });
+            })();
+        </script>
+        
+        <style>
+            #code {
+                padding-left: 3rem !important;
+            }
+        </style>
+    </div>
 </body>
 </html>
