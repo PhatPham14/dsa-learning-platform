@@ -48,7 +48,8 @@ public class SecurityConfig {
                         // Allow public endpoints used by the UI and public APIs
                         .requestMatchers(
                                 "/", "/courses", "/login", "/register", "/language",
-                                "/dashboard", "/submit", "/create", "/purchase","/api/payments/charge",
+                                "/dashboard", "/submit", "/create", "/purchase", "/api/payments/charge",
+                                "/api/payments/vnpay/create", "/api/payments/vnpay/return", "/api/payments/vnpay/ipn",
                                 "/profile", "/my-courses", "/instructor/dashboard",
                                 "/css/**", "/js/**", "/images/**",
                                 "/api/public/**", "/h2-console/**",

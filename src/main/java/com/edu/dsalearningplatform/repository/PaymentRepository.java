@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
@@ -24,4 +25,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT YEAR(p.paidAt), MONTH(p.paidAt), SUM(p.adminShare) FROM Payment p WHERE p.paidAt >= :startDate GROUP BY YEAR(p.paidAt), MONTH(p.paidAt) ORDER BY YEAR(p.paidAt) DESC, MONTH(p.paidAt) DESC")
     List<Object[]> findMonthlyRevenue(@Param("startDate") java.time.LocalDateTime startDate);
+
+       Optional<Payment> findTopByStudentUserIdAndCourseCourseIdOrderByPaidAtDesc(Integer studentId, Long courseId);
 }

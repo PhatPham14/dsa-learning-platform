@@ -94,14 +94,14 @@
                             </div>
 
                             <div class="pt-4 space-y-3">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Giá gốc</span>
-                                    <span class="text-gray-900 font-medium">1,200,000 VND</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Giảm giá</span>
-                                    <span class="text-green-600 font-medium" th:text="'- ' + ${#numbers.formatDecimal(1200000 - course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">- 0 VND</span>
-                                </div>
+<!--                                <div class="flex justify-between text-sm">-->
+<!--                                    <span class="text-gray-500">Giá gốc</span>-->
+<!--                                    <span class="text-gray-900 font-medium">1,200,000 VND</span>-->
+<!--                                </div>-->
+<!--                                <div class="flex justify-between text-sm">-->
+<!--                                    <span class="text-gray-500">Giảm giá</span>-->
+<!--                                    <span class="text-green-600 font-medium" th:text="'- ' + ${#numbers.formatDecimal(1200000 - course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">- 0 VND</span>-->
+<!--                                </div>-->
                                 <div class="border-t border-gray-100 pt-3 flex justify-between items-center">
                                     <span class="font-bold text-gray-900">Tổng cộng</span>
                                     <span class="text-xl font-extrabold text-primary" th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
@@ -127,8 +127,19 @@
                 const submitBtn = document.getElementById('purchase-btn');
                 const errorBox = document.getElementById('purchase-error');
                 const successBox = document.getElementById('purchase-success');
+                const query = new URLSearchParams(window.location.search);
 
                 if (!form) return;
+
+                const paymentStatus = query.get('paymentStatus');
+                const paymentMessage = query.get('paymentMessage');
+                if (paymentStatus === 'failed') {
+                    errorBox.textContent = paymentMessage || 'Thanh toán chưa thành công. Vui lòng thử lại.';
+                    errorBox.classList.remove('hidden');
+                } else if (paymentStatus === 'success') {
+                    successBox.textContent = 'Thanh toán thành công! Bạn đã có thể học ngay.';
+                    successBox.classList.remove('hidden');
+                }
 
                 form.addEventListener('submit', async function(e) {
                     e.preventDefault();
@@ -137,24 +148,26 @@
 
                     const studentId = document.getElementById('studentId').value;
                     const courseId = document.getElementById('courseId').value;
-                    const provider = document.getElementById('provider').value;
 
                     submitBtn.disabled = true;
                     const originalText = submitBtn.innerHTML;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Đang xử lý...';
 
                     try {
-                        const url = `/api/payments/charge?studentId=${studentId}&courseId=${courseId}&provider=${provider}`;
+                        const url = `/api/payments/vnpay/create?studentId=${studentId}&courseId=${courseId}`;
                         const res = await fetch(url, { method: 'POST' });
+                        const payload = await res.json().catch(() => ({}));
 
                         if (!res.ok) {
-                            const err = await res.json().catch(() => ({}));
-                            errorBox.textContent = err.message || 'Thanh toán thất bại. Vui lòng thử lại.';
+                            errorBox.textContent = payload.message || 'Không thể khởi tạo thanh toán VNPAY.';
+                            errorBox.classList.remove('hidden');
+                        } else if (!payload.paymentUrl) {
+                            errorBox.textContent = 'Không nhận được đường dẫn thanh toán từ VNPAY.';
                             errorBox.classList.remove('hidden');
                         } else {
-                            successBox.textContent = 'Thanh toán thành công! Đang chuyển hướng...';
+                            successBox.textContent = 'Đang chuyển hướng đến cổng thanh toán VNPAY...';
                             successBox.classList.remove('hidden');
-                            setTimeout(() => { window.location.href = '/my-courses'; }, 1500);
+                            window.location.href = payload.paymentUrl;
                         }
                     } catch (err) {
                         errorBox.textContent = 'Có lỗi xảy ra kết nối đến hệ thống.';

@@ -39,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String[] permitAllPaths = {
                 "/api/auth/**",
                 "/api/payments/**",
+                "/purchase",
                 "/swagger-ui/**", // Swagger UI
                 "/v3/api-docs/**", // Swagger JSON
                 "/error","/", "/courses", "/login", "/register",

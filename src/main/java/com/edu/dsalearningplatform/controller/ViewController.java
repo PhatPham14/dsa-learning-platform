@@ -15,11 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -128,6 +130,43 @@ public class ViewController {
 
         model.addAttribute("courses", courses);
         return "courses";
+    }
+
+    @GetMapping("/courses/{courseId}")
+    public String courseDetail(@PathVariable Long courseId,
+                               HttpServletRequest request,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(request);
+        if (user != null) {
+            model.addAttribute("user", user);
+        }
+
+        var course = courseService.getCourseById(courseId);
+        if (course == null) {
+            redirectAttributes.addFlashAttribute("message", "Không tìm thấy khóa học.");
+            return "redirect:/courses";
+        }
+
+        boolean isAdmin = user != null && user.getRole() == UserRole.ADMIN;
+        boolean isInstructorOwner = user != null &&
+                course.getInstructor() != null &&
+                course.getInstructor().getUserId().equals(user.getUserId());
+
+        // Hide inactive courses from normal users
+        if (!course.isActive() && !isAdmin && !isInstructorOwner) {
+            redirectAttributes.addFlashAttribute("message", "Khóa học này hiện không khả dụng.");
+            return "redirect:/courses";
+        }
+
+        boolean isEnrolled = user != null && enrollmentService.isEnrolled(user.getUserId(), courseId);
+
+        model.addAttribute("course", course);
+        model.addAttribute("isEnrolled", isEnrolled);
+        model.addAttribute("isInstructorOwner", isInstructorOwner);
+        model.addAttribute("isAdmin", isAdmin);
+
+        return "courseDetail";
     }
 
     @GetMapping("/login")
@@ -247,14 +286,21 @@ public class ViewController {
             }
             model.addAttribute("user", user);
 
-            var payments = paymentService.getPaymentsByInstructor(user.getUserId());
-            model.addAttribute("payments", payments);
+                var allPayments = paymentService.getPaymentsByInstructor(user.getUserId());
+                var recentPayments = allPayments.stream()
+                    .sorted(Comparator.comparing(com.edu.dsalearningplatform.dto.InstructorPaymentDTO::getPaidAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                    .limit(10)
+                    .toList();
 
-            BigDecimal totalRevenue = payments.stream()
+                model.addAttribute("payments", recentPayments);
+                model.addAttribute("totalPaymentCount", allPayments.size());
+
+                BigDecimal totalRevenue = allPayments.stream()
                 .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
                 
-            BigDecimal totalInstructorShare = payments.stream()
+                BigDecimal totalInstructorShare = allPayments.stream()
                 .map(p -> p.getInstructorShare() != null ? p.getInstructorShare() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -262,7 +308,7 @@ public class ViewController {
             model.addAttribute("totalInstructorShare", totalInstructorShare);
 
             // Aggregate revenue by course
-            Map<String, BigDecimal> revenueByCourse = payments.stream()
+            Map<String, BigDecimal> revenueByCourse = allPayments.stream()
                 .collect(Collectors.groupingBy(
                     p -> p.getCourseTitle() != null ? p.getCourseTitle() : "Unknown Course",
                     Collectors.reducing(BigDecimal.ZERO, 

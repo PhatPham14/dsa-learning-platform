@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<head>
+    <title th:text="${course != null ? course.title + ' - Chi tiết khóa học' : 'Chi tiết khóa học'}">Chi tiết khóa học</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="bg-white border-b border-gray-200 mb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <a href="/courses" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors mb-4">
+                <i class="fas fa-arrow-left"></i>
+                Quay lại danh sách khóa học
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Chi tiết khóa học</h1>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20" th:if="${course != null}">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                <div class="card border-none ring-1 ring-gray-200 overflow-hidden">
+                    <div class="h-72 bg-gray-100">
+                        <img th:src="${course.displayImageUrl != null ? course.displayImageUrl : '/images/default-course.svg'}"
+                             alt="Course image"
+                             class="w-full h-full object-cover"/>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-start justify-between gap-4 mb-4">
+                            <h2 class="text-2xl font-bold text-gray-900" th:text="${course.title}">Tên khóa học</h2>
+                            <span th:if="${course.active}" class="text-xs font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full">Đang mở</span>
+                            <span th:unless="${course.active}" class="text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full">Tạm ngưng</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
+                            <span>
+                                <i class="fas fa-user mr-1"></i>
+                                Giảng viên:
+                                <span class="font-medium text-gray-700" th:text="${course.instructor != null ? course.instructor.fullName : 'N/A'}">N/A</span>
+                            </span>
+                            <span>
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                Cập nhật:
+                                <span class="font-medium text-gray-700" th:text="${course.createdAt != null ? #temporals.format(course.createdAt, 'dd/MM/yyyy') : 'N/A'}">N/A</span>
+                            </span>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-2">Mô tả khóa học</h3>
+                            <p class="text-gray-600 leading-7 whitespace-pre-line" th:text="${course.description}">Mô tả khóa học...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="card p-6 shadow-xl border-none ring-1 ring-primary/20 sticky top-24">
+                    <h3 class="text-lg font-bold text-gray-900 mb-6">Thông tin đăng ký</h3>
+
+                    <div class="border border-gray-100 rounded-xl p-4 bg-gray-50 mb-6">
+                        <p class="text-sm text-gray-500 mb-1">Giá khóa học</p>
+                        <p class="text-3xl font-extrabold text-primary"
+                           th:text="${#numbers.formatDecimal(course.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <a th:if="${user == null}"
+                           th:href="@{/login}"
+                           class="btn btn-primary w-full text-center">
+                            Đăng nhập để đăng ký
+                        </a>
+
+                        <a th:if="${user != null && isEnrolled}"
+                           th:href="@{/learn(courseId=${course.courseId})}"
+                           class="btn btn-secondary w-full text-center">
+                            <i class="fas fa-play-circle mr-2"></i>Tiếp tục học
+                        </a>
+
+                        <a th:if="${user != null && !isEnrolled && !isAdmin && !isInstructorOwner}"
+                           th:href="@{/purchase(courseId=${course.courseId})}"
+                           class="btn btn-primary w-full text-center">
+                            Đăng ký ngay
+                        </a>
+
+                        <a th:if="${isInstructorOwner}"
+                           th:href="@{'/instructor/courses/' + ${course.courseId} + '/edit'}"
+                           class="btn btn-outline w-full text-center">
+                            <i class="fas fa-edit mr-2"></i>Quản lý khóa học
+                        </a>
+
+                        <p th:if="${isAdmin}" class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            Tài khoản Admin chỉ có quyền xem chi tiết khóa học.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
