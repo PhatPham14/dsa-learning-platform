@@ -2,8 +2,13 @@ package com.edu.dsalearningplatform.service.serviceImpl;
 
 import com.edu.dsalearningplatform.dto.request.CreateCourseRequest;
 import com.edu.dsalearningplatform.entity.*;
+import com.edu.dsalearningplatform.enums.NotificationType;
+import com.edu.dsalearningplatform.enums.UserRole;
 import com.edu.dsalearningplatform.repository.*;
 import com.edu.dsalearningplatform.service.CourseService;
+import com.edu.dsalearningplatform.service.NotificationService;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,16 +25,19 @@ public class CourseServiceImpl implements CourseService {
     private final VideoRepository videoRepository;
     private final QuizRepository quizRepository;
     private final AssignmentRepository assignmentRepository;
+    private final NotificationService notificationService;
 
     public CourseServiceImpl(CourseRepository courseRepository, UserRepository userRepository,
                              SessionRepository sessionRepository, VideoRepository videoRepository,
-                             QuizRepository quizRepository, AssignmentRepository assignmentRepository) {
+                             QuizRepository quizRepository, AssignmentRepository assignmentRepository,
+                             @Lazy NotificationService notificationService) {
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.videoRepository = videoRepository;
         this.quizRepository = quizRepository;
         this.assignmentRepository = assignmentRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -103,7 +111,29 @@ public class CourseServiceImpl implements CourseService {
             }
         }
 
-        return courseRepository.save(course);
+        Course saved = courseRepository.save(course);
+
+        // Thông báo tất cả ADMIN về khóa học mới cần phê duyệt
+        String instructorName = saved.getInstructor() != null ? saved.getInstructor().getFullName() : "Instructor";
+        String shortMsg = "Khóa học \"" + saved.getTitle() + "\" cần phê duyệt.";
+        String detail = "Instructor " + instructorName + " vừa tạo khóa học mới:\n" +
+                "- Tên: " + saved.getTitle() + "\n" +
+                "- Mô tả: " + (saved.getDescription() != null ? saved.getDescription() : "Không có") + "\n" +
+                "- Giá: " + saved.getPrice() + " VNĐ\n" +
+                "Vui lòng truy cập trang quản lý để phê duyệt.";
+        userRepository.findByRole(UserRole.ADMIN).forEach(admin ->
+            notificationService.sendNotification(
+                admin.getUserId(),
+                NotificationType.COURSE_CREATED,
+                "Khóa học mới cần phê duyệt",
+                shortMsg,
+                detail,
+                saved.getCourseId(),
+                saved.getInstructor() != null ? saved.getInstructor().getUserId() : null
+            )
+        );
+
+        return saved;
     }
 
     @Override
@@ -118,7 +148,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<Course> getAllCourses() {
-        return courseRepository.findAll();
+        return courseRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     @Override

@@ -3,8 +3,10 @@ package com.edu.dsalearningplatform.controller;
 import com.edu.dsalearningplatform.entity.Course;
 import com.edu.dsalearningplatform.entity.User;
 import com.edu.dsalearningplatform.dto.request.UserUpdateRequest;
+import com.edu.dsalearningplatform.enums.NotificationType;
 import com.edu.dsalearningplatform.enums.UserRole;
 import com.edu.dsalearningplatform.service.CourseService;
+import com.edu.dsalearningplatform.service.NotificationService;
 import com.edu.dsalearningplatform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,9 @@ public class AdminController {
 
     @Autowired
     private CourseService courseService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // User Management APIs
     @PostMapping("/users")
@@ -111,6 +116,20 @@ public class AdminController {
                 courseService.toggleStatus(courseId);
             }
 
+            // Thông báo cho INSTRUCTOR
+            if (course.getInstructor() != null) {
+                notificationService.sendNotification(
+                    course.getInstructor().getUserId(),
+                    NotificationType.COURSE_ENABLED,
+                    "Khóa học đã được phê duyệt",
+                    "Khóa học \"" + course.getTitle() + "\" đã được Admin phê duyệt và kích hoạt.",
+                    "Admin đã phê duyệt và kích hoạt khóa học \"" + course.getTitle() + "\".\n" +
+                    "Khóa học của bạn bây giờ đã sẵn sàng cho học viên đăng ký.",
+                    courseId,
+                    null
+                );
+            }
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Xét duyệt khóa học thành công");
@@ -136,6 +155,20 @@ public class AdminController {
                 courseService.toggleStatus(courseId);
             }
 
+            // Thông báo cho INSTRUCTOR
+            if (course.getInstructor() != null) {
+                notificationService.sendNotification(
+                    course.getInstructor().getUserId(),
+                    NotificationType.COURSE_DISABLED,
+                    "Khóa học bị tạm ngưng",
+                    "Khóa học \"" + course.getTitle() + "\" đã bị Admin tạm ngưng hoạt động.",
+                    "Admin đã tạm ngưng khóa học \"" + course.getTitle() + "\".\n" +
+                    "Khóa học hiện không còn hiển thị cho học viên. Liên hệ Admin nếu cần thêm thông tin.",
+                    courseId,
+                    null
+                );
+            }
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Vô hiệu hóa khóa học thành công");
@@ -159,6 +192,20 @@ public class AdminController {
 
             if (!course.isActive()) {
                 courseService.toggleStatus(courseId);
+            }
+
+            // Thông báo cho INSTRUCTOR
+            if (course.getInstructor() != null) {
+                notificationService.sendNotification(
+                    course.getInstructor().getUserId(),
+                    NotificationType.COURSE_ENABLED,
+                    "Khóa học đã được kích hoạt",
+                    "Khóa học \"" + course.getTitle() + "\" đã được Admin kích hoạt.",
+                    "Admin đã kích hoạt khóa học \"" + course.getTitle() + "\".\n" +
+                    "Khóa học của bạn đã được hiện trên trang khóa học và học viên có thể đăng ký.",
+                    courseId,
+                    null
+                );
             }
 
             Map<String, Object> response = new HashMap<>();

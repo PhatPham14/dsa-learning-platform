@@ -3,13 +3,13 @@ package com.edu.dsalearningplatform.service.serviceImpl;
 import com.edu.dsalearningplatform.dto.InstructorPaymentDTO;
 import com.edu.dsalearningplatform.dto.VnpayCallbackResult;
 import com.edu.dsalearningplatform.entity.Course;
-import com.edu.dsalearningplatform.entity.Enrollment;
 import com.edu.dsalearningplatform.entity.Payment;
 import com.edu.dsalearningplatform.entity.User;
 import com.edu.dsalearningplatform.repository.CourseRepository;
 import com.edu.dsalearningplatform.repository.EnrollmentRepository;
 import com.edu.dsalearningplatform.repository.PaymentRepository;
 import com.edu.dsalearningplatform.repository.UserRepository;
+import com.edu.dsalearningplatform.service.EnrollmentService;
 import com.edu.dsalearningplatform.service.PaymentService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,6 +37,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final EnrollmentService enrollmentService;
 
     @Value("${vnpay.sandbox.tmn-code:${vnpay.sandbox.vnpTmnCode:${VNPAY_TMN_CODE:}}}")
     private String vnpTmnCode;
@@ -59,11 +60,14 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${vnpay.sandbox.order-type:${vnpay.sandbox.vnpOrderType:other}}")
     private String vnpOrderType;
 
-    public PaymentServiceImpl(PaymentRepository paymentRepository, CourseRepository courseRepository, UserRepository userRepository, EnrollmentRepository enrollmentRepository) {
+    public PaymentServiceImpl(PaymentRepository paymentRepository, CourseRepository courseRepository,
+                              UserRepository userRepository, EnrollmentRepository enrollmentRepository,
+                              EnrollmentService enrollmentService) {
         this.paymentRepository = paymentRepository;
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.enrollmentRepository = enrollmentRepository;
+        this.enrollmentService = enrollmentService;
     }
 
     @Override
@@ -88,10 +92,7 @@ public class PaymentServiceImpl implements PaymentService {
         p.setProvider(provider == null ? "mock_gateway" : provider);
         Payment saved = paymentRepository.save(p);
 
-        Enrollment e = new Enrollment();
-        e.setCourse(course);
-        e.setStudent(user);
-        enrollmentRepository.save(e);
+        enrollmentService.enroll(courseId, studentId);
 
         return saved;
     }
