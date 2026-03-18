@@ -1,5 +1,6 @@
 package com.edu.dsalearningplatform.controller;
 
+import com.edu.dsalearningplatform.dto.InstructorPaymentDTO;
 import com.edu.dsalearningplatform.dto.request.UpdateProfileRequest;
 import com.edu.dsalearningplatform.entity.User;
 import com.edu.dsalearningplatform.enums.UserRole;
@@ -21,14 +22,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Controller
 public class ViewController {
+
+    private static final int DAILY_DASHBOARD_DAYS = 10;
 
     @Autowired(required = false)
     private JwtUtils jwtUtils;
@@ -199,7 +209,11 @@ public class ViewController {
     }
 
     @GetMapping("/admin/dashboard")
-    public String adminDashboard(HttpServletRequest request, Model model) {
+    public String adminDashboard(HttpServletRequest request,
+                                 Model model,
+                                 @RequestParam(name = "period", defaultValue = "day") String period,
+                                 @RequestParam(name = "month", required = false) Integer month,
+                                 @RequestParam(name = "year", required = false) Integer year) {
         try {
             User user = getCurrentUser(request);
             if (user == null) {
@@ -210,36 +224,52 @@ public class ViewController {
             }
             model.addAttribute("user", user);
 
-            var payments = paymentService.getAllPayments();
-            model.addAttribute("payments", payments);
+            List<InstructorPaymentDTO> allPayments = paymentService.getAllPayments();
 
-            BigDecimal totalRevenue = payments.stream()
+            List<Integer> availableYears = getAvailableYears(allPayments);
+            int resolvedYear = resolveYear(year, availableYears);
+            int resolvedMonth = resolveMonth(month);
+            DashboardPeriod dashboardPeriod = resolvePeriod(period);
+            DashboardRange dashboardRange = buildDashboardRange(dashboardPeriod, resolvedMonth, resolvedYear);
+            List<InstructorPaymentDTO> filteredPayments = filterPaymentsByRange(allPayments, dashboardRange);
+
+            BigDecimal totalRevenue = filteredPayments.stream()
                 .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
                 
-            BigDecimal totalAdminShare = payments.stream()
+            BigDecimal totalAdminShare = filteredPayments.stream()
                 .map(p -> p.getAdminShare() != null ? p.getAdminShare() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             model.addAttribute("totalRevenue", totalRevenue);
             model.addAttribute("totalAdminShare", totalAdminShare);
+            model.addAttribute("payments", filteredPayments);
 
             // Aggregate revenue by course
-            Map<String, BigDecimal> revenueByCourse = payments.stream()
+            Map<String, BigDecimal> revenueByCourse = filteredPayments.stream()
                 .collect(Collectors.groupingBy(
                     p -> p.getCourseTitle() != null ? p.getCourseTitle() : "Unknown Course",
+                    LinkedHashMap::new,
                     Collectors.reducing(BigDecimal.ZERO, 
                         p -> p.getAdminShare() != null ? p.getAdminShare() : BigDecimal.ZERO, 
                         BigDecimal::add)
                 ));
             model.addAttribute("revenueByCourse", revenueByCourse);
 
-            // New stats
-            List<Object[]> bestSellingCourses = paymentService.getBestSellingCoursesThisMonth();
+            List<Object[]> bestSellingCourses = buildBestSellingCourses(filteredPayments);
             model.addAttribute("bestSellingCourses", bestSellingCourses);
 
-            List<Object[]> revenueLast3Months = paymentService.getRevenueLast3Months();
-            model.addAttribute("revenueLast3Months", revenueLast3Months);
+            List<Object[]> revenueTimeline = buildRevenueTimeline(filteredPayments, dashboardPeriod, dashboardRange,
+                    p -> p.getAdminShare() != null ? p.getAdminShare() : BigDecimal.ZERO);
+            model.addAttribute("revenueTimeline", revenueTimeline);
+
+            model.addAttribute("period", dashboardPeriod.name().toLowerCase());
+            model.addAttribute("selectedMonth", resolvedMonth);
+            model.addAttribute("selectedYear", resolvedYear);
+            model.addAttribute("availableYears", availableYears);
+            model.addAttribute("monthOptions", buildMonthOptions());
+            model.addAttribute("periodLabel", buildPeriodLabel(dashboardPeriod, resolvedMonth, resolvedYear));
+            model.addAttribute("transactionLabel", buildTransactionLabel(dashboardPeriod, resolvedMonth, resolvedYear));
 
             return "adminDashboard";
         } catch (Exception e) {
@@ -275,7 +305,11 @@ public class ViewController {
     }
 
     @GetMapping("/instructor/dashboard")
-    public String instructorDashboard(HttpServletRequest request, Model model) {
+    public String instructorDashboard(HttpServletRequest request,
+                                      Model model,
+                                      @RequestParam(name = "period", defaultValue = "day") String period,
+                                      @RequestParam(name = "month", required = false) Integer month,
+                                      @RequestParam(name = "year", required = false) Integer year) {
         try {
             User user = getCurrentUser(request);
             if (user == null) {
@@ -286,21 +320,28 @@ public class ViewController {
             }
             model.addAttribute("user", user);
 
-                var allPayments = paymentService.getPaymentsByInstructor(user.getUserId());
-                var recentPayments = allPayments.stream()
-                    .sorted(Comparator.comparing(com.edu.dsalearningplatform.dto.InstructorPaymentDTO::getPaidAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-                    .limit(10)
-                    .toList();
+            List<InstructorPaymentDTO> allPayments = paymentService.getPaymentsByInstructor(user.getUserId());
+            List<Integer> availableYears = getAvailableYears(allPayments);
+            int resolvedYear = resolveYear(year, availableYears);
+            int resolvedMonth = resolveMonth(month);
+            DashboardPeriod dashboardPeriod = resolvePeriod(period);
+            DashboardRange dashboardRange = buildDashboardRange(dashboardPeriod, resolvedMonth, resolvedYear);
+            List<InstructorPaymentDTO> filteredPayments = filterPaymentsByRange(allPayments, dashboardRange);
 
-                model.addAttribute("payments", recentPayments);
-                model.addAttribute("totalPaymentCount", allPayments.size());
+            var recentPayments = filteredPayments.stream()
+                .sorted(Comparator.comparing(InstructorPaymentDTO::getPaidAt,
+                    Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .limit(10)
+                .toList();
 
-                BigDecimal totalRevenue = allPayments.stream()
+            model.addAttribute("payments", recentPayments);
+            model.addAttribute("totalPaymentCount", filteredPayments.size());
+
+            BigDecimal totalRevenue = filteredPayments.stream()
                 .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
                 
-                BigDecimal totalInstructorShare = allPayments.stream()
+            BigDecimal totalInstructorShare = filteredPayments.stream()
                 .map(p -> p.getInstructorShare() != null ? p.getInstructorShare() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -308,14 +349,30 @@ public class ViewController {
             model.addAttribute("totalInstructorShare", totalInstructorShare);
 
             // Aggregate revenue by course
-            Map<String, BigDecimal> revenueByCourse = allPayments.stream()
+            Map<String, BigDecimal> revenueByCourse = filteredPayments.stream()
                 .collect(Collectors.groupingBy(
                     p -> p.getCourseTitle() != null ? p.getCourseTitle() : "Unknown Course",
+                    LinkedHashMap::new,
                     Collectors.reducing(BigDecimal.ZERO, 
                         p -> p.getInstructorShare() != null ? p.getInstructorShare() : BigDecimal.ZERO, 
                         BigDecimal::add)
                 ));
             model.addAttribute("revenueByCourse", revenueByCourse);
+
+            List<Object[]> bestSellingCourses = buildBestSellingCourses(filteredPayments);
+            model.addAttribute("bestSellingCourses", bestSellingCourses);
+
+            List<Object[]> revenueTimeline = buildRevenueTimeline(filteredPayments, dashboardPeriod, dashboardRange,
+                    p -> p.getInstructorShare() != null ? p.getInstructorShare() : BigDecimal.ZERO);
+            model.addAttribute("revenueTimeline", revenueTimeline);
+
+            model.addAttribute("period", dashboardPeriod.name().toLowerCase());
+            model.addAttribute("selectedMonth", resolvedMonth);
+            model.addAttribute("selectedYear", resolvedYear);
+            model.addAttribute("availableYears", availableYears);
+            model.addAttribute("monthOptions", buildMonthOptions());
+            model.addAttribute("periodLabel", buildPeriodLabel(dashboardPeriod, resolvedMonth, resolvedYear));
+            model.addAttribute("transactionLabel", buildTransactionLabel(dashboardPeriod, resolvedMonth, resolvedYear));
 
             return "instructorDashboard";
         } catch (Exception e) {
@@ -362,6 +419,153 @@ public class ViewController {
         }
         model.addAttribute("courseId", courseId);
         return "purchase";
+    }
+
+    private DashboardPeriod resolvePeriod(String period) {
+        if (period == null) {
+            return DashboardPeriod.DAY;
+        }
+        return switch (period.toLowerCase()) {
+            case "month" -> DashboardPeriod.MONTH;
+            case "year" -> DashboardPeriod.YEAR;
+            default -> DashboardPeriod.DAY;
+        };
+    }
+
+    private int resolveMonth(Integer month) {
+        int currentMonth = LocalDate.now().getMonthValue();
+        if (month == null || month < 1 || month > 12) {
+            return currentMonth;
+        }
+        return month;
+    }
+
+    private int resolveYear(Integer year, List<Integer> availableYears) {
+        int currentYear = LocalDate.now().getYear();
+        if (year != null) {
+            return year;
+        }
+        if (!availableYears.isEmpty()) {
+            return availableYears.get(0);
+        }
+        return currentYear;
+    }
+
+    private DashboardRange buildDashboardRange(DashboardPeriod period, int month, int year) {
+        return switch (period) {
+            case DAY -> {
+                LocalDate endDate = LocalDate.now();
+                LocalDate startDate = endDate.minusDays(DAILY_DASHBOARD_DAYS - 1L);
+                yield new DashboardRange(startDate.atStartOfDay(), endDate.atTime(23, 59, 59), month, year);
+            }
+            case MONTH -> {
+                YearMonth yearMonth = YearMonth.of(year, month);
+                yield new DashboardRange(yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(23, 59, 59), month, year);
+            }
+            case YEAR -> yield new DashboardRange(LocalDate.of(year, 1, 1).atStartOfDay(),
+                    LocalDate.of(year, 12, 31).atTime(23, 59, 59), month, year);
+        };
+    }
+
+    private List<InstructorPaymentDTO> filterPaymentsByRange(List<InstructorPaymentDTO> payments, DashboardRange range) {
+        return payments.stream()
+                .filter(p -> p.getPaidAt() != null)
+                .filter(p -> !p.getPaidAt().isBefore(range.start()) && !p.getPaidAt().isAfter(range.end()))
+                .toList();
+    }
+
+    private List<Integer> getAvailableYears(List<InstructorPaymentDTO> payments) {
+        TreeSet<Integer> years = payments.stream()
+                .map(InstructorPaymentDTO::getPaidAt)
+                .filter(java.util.Objects::nonNull)
+                .map(LocalDateTime::getYear)
+                .collect(Collectors.toCollection(TreeSet::new));
+        List<Integer> availableYears = new ArrayList<>(years.descendingSet());
+        if (availableYears.isEmpty()) {
+            availableYears.add(LocalDate.now().getYear());
+        }
+        return availableYears;
+    }
+
+    private List<Integer> buildMonthOptions() {
+        List<Integer> months = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            months.add(month);
+        }
+        return months;
+    }
+
+    private List<Object[]> buildBestSellingCourses(List<InstructorPaymentDTO> payments) {
+        return payments.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getCourseTitle() != null ? p.getCourseTitle() : "Unknown Course",
+                        Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(entry -> new Object[]{entry.getKey(), entry.getValue()})
+                .toList();
+    }
+
+    private List<Object[]> buildRevenueTimeline(List<InstructorPaymentDTO> payments,
+                                                DashboardPeriod period,
+                                                DashboardRange range,
+                                                Function<InstructorPaymentDTO, BigDecimal> revenueExtractor) {
+        LinkedHashMap<String, BigDecimal> timeline = new LinkedHashMap<>();
+
+        if (period == DashboardPeriod.YEAR) {
+            for (int month = 1; month <= 12; month++) {
+                String label = String.format("%02d/%d", month, range.year());
+                timeline.put(label, BigDecimal.ZERO);
+            }
+        } else {
+            LocalDate currentDate = range.start().toLocalDate();
+            LocalDate endDate = range.end().toLocalDate();
+            while (!currentDate.isAfter(endDate)) {
+                timeline.put(currentDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM")), BigDecimal.ZERO);
+                currentDate = currentDate.plusDays(1);
+            }
+        }
+
+        for (InstructorPaymentDTO payment : payments) {
+            String label;
+            if (period == DashboardPeriod.YEAR) {
+                label = String.format("%02d/%d", payment.getPaidAt().getMonthValue(), payment.getPaidAt().getYear());
+            } else {
+                label = payment.getPaidAt().toLocalDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
+            }
+            BigDecimal amount = revenueExtractor.apply(payment);
+            timeline.merge(label, amount != null ? amount : BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        return timeline.entrySet().stream()
+                .map(entry -> new Object[]{entry.getKey(), entry.getValue()})
+                .toList();
+    }
+
+    private String buildPeriodLabel(DashboardPeriod period, int month, int year) {
+        return switch (period) {
+            case DAY -> "10 ngày gần nhất";
+            case MONTH -> String.format("Tháng %02d/%d", month, year);
+            case YEAR -> "Năm " + year;
+        };
+    }
+
+    private String buildTransactionLabel(DashboardPeriod period, int month, int year) {
+        return switch (period) {
+            case DAY -> "Giao dịch trong 10 ngày gần nhất";
+            case MONTH -> String.format("Giao dịch tháng %02d/%d", month, year);
+            case YEAR -> "Giao dịch năm " + year;
+        };
+    }
+
+    private enum DashboardPeriod {
+        DAY,
+        MONTH,
+        YEAR
+    }
+
+    private record DashboardRange(LocalDateTime start, LocalDateTime end, int month, int year) {
     }
 
     @PostMapping("/admin/course/approve")

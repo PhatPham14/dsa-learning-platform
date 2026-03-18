@@ -12,14 +12,45 @@
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">Bảng điều khiển Giảng viên</h1>
                         <p class="text-gray-500">Chào mừng trở lại, <span class="font-semibold text-primary" th:text="${user.fullName}">Giảng viên</span></p>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Bộ lọc hiện tại: <span class="font-semibold text-gray-700" th:text="${periodLabel}">10 ngày gần nhất</span>
+                        </p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-col md:flex-row items-start md:items-end gap-3">
+                        <form method="get" th:action="@{/instructor/dashboard}" class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-end">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Kiểu thống kê</label>
+                                <select name="period" class="form-select w-full">
+                                    <option value="day" th:selected="${period == 'day'}">10 ngày gần nhất</option>
+                                    <option value="month" th:selected="${period == 'month'}">Theo tháng</option>
+                                    <option value="year" th:selected="${period == 'year'}">Theo năm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Tháng</label>
+                                <select name="month" class="form-select w-full" th:disabled="${period != 'month'}">
+                                    <option th:each="m : ${monthOptions}" th:value="${m}" th:selected="${m == selectedMonth}" th:text="${'Tháng ' + m}">Tháng 1</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Năm</label>
+                                <select name="year" class="form-select w-full">
+                                    <option th:each="y : ${availableYears}" th:value="${y}" th:selected="${y == selectedYear}" th:text="${y}">2026</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary h-10">
+                                <i class="fas fa-filter"></i> Áp dụng
+                            </button>
+                        </form>
+
+                        <div class="flex items-center gap-3">
                         <a href="/create" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Tạo khóa học mới
                         </a>
                         <a href="/instructor/courses" class="btn btn-outline">
                             <i class="fas fa-tasks"></i> Quản lý khóa học
                         </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,13 +122,44 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="card mt-8">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                            <h2 class="text-lg font-bold text-gray-900">Top khóa học bán chạy</h2>
+                            <p class="text-sm text-gray-500 mt-1" th:text="${periodLabel}">10 ngày gần nhất</p>
+                        </div>
+                        <div class="p-6">
+                            <table th:if="${bestSellingCourses != null && !bestSellingCourses.isEmpty()}" class="w-full text-left">
+                                <thead class="text-xs text-gray-400 uppercase tracking-widest">
+                                <tr>
+                                    <th class="pb-4 font-semibold">Khóa học</th>
+                                    <th class="pb-4 font-semibold text-right">Số giao dịch</th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                <tr th:each="row : ${bestSellingCourses}">
+                                    <td class="py-4 text-sm font-medium text-gray-700" th:text="${row[0]}">Course Name</td>
+                                    <td class="py-4 text-right">
+                                        <span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-full" th:text="${row[1]}">10</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div th:if="${bestSellingCourses == null || bestSellingCourses.isEmpty()}" class="text-center py-6">
+                                <p class="text-gray-400 text-sm italic">Chưa có dữ liệu bán hàng trong kỳ này.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Recent Transactions -->
                 <div class="lg:col-span-2">
                     <div class="card">
                         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h2 class="text-lg font-bold text-gray-900">Giao dịch gần đây (tối đa 10)</h2>
+                            <div>
+                                <h2 class="text-lg font-bold text-gray-900">Giao dịch gần đây (tối đa 10)</h2>
+                                <p class="text-sm text-gray-500 mt-1" th:text="${transactionLabel}">Giao dịch trong 10 ngày gần nhất</p>
+                            </div>
                             <button class="text-sm text-primary font-semibold hover:underline">Xuất báo cáo</button>
                         </div>
                         <div class="overflow-x-auto">
@@ -138,6 +200,27 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div class="p-6 border-t border-gray-100 bg-gray-50/50">
+                            <h3 class="text-base font-bold text-gray-900 mb-4">Doanh thu theo mốc thời gian</h3>
+                            <div class="overflow-x-auto">
+                                <table th:if="${revenueTimeline != null && !revenueTimeline.isEmpty()}" class="w-full text-left">
+                                    <thead class="text-xs text-gray-400 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="pb-3 font-semibold">Mốc thời gian</th>
+                                        <th class="pb-3 font-semibold text-right">Thực nhận</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 text-sm">
+                                    <tr th:each="row : ${revenueTimeline}">
+                                        <td class="py-3 text-gray-700" th:text="${row[0]}">10/03</td>
+                                        <td class="py-3 text-right font-bold text-green-600" th:text="${#numbers.formatDecimal(row[1], 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <p th:if="${revenueTimeline == null || revenueTimeline.isEmpty()}" class="text-gray-400 text-sm italic">Chưa có dữ liệu doanh thu trong kỳ này.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
