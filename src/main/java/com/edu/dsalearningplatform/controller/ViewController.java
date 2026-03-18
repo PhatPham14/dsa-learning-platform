@@ -425,11 +425,14 @@ public class ViewController {
         if (period == null) {
             return DashboardPeriod.DAY;
         }
-        return switch (period.toLowerCase()) {
-            case "month" -> DashboardPeriod.MONTH;
-            case "year" -> DashboardPeriod.YEAR;
-            default -> DashboardPeriod.DAY;
-        };
+        switch (period.toLowerCase()) {
+            case "month":
+                return DashboardPeriod.MONTH;
+            case "year":
+                return DashboardPeriod.YEAR;
+            default:
+                return DashboardPeriod.DAY;
+        }
     }
 
     private int resolveMonth(Integer month) {
@@ -452,19 +455,21 @@ public class ViewController {
     }
 
     private DashboardRange buildDashboardRange(DashboardPeriod period, int month, int year) {
-        return switch (period) {
-            case DAY -> {
+        switch (period) {
+            case DAY:
                 LocalDate endDate = LocalDate.now();
                 LocalDate startDate = endDate.minusDays(DAILY_DASHBOARD_DAYS - 1L);
-                yield new DashboardRange(startDate.atStartOfDay(), endDate.atTime(23, 59, 59), month, year);
-            }
-            case MONTH -> {
+                return new DashboardRange(startDate.atStartOfDay(), endDate.atTime(23, 59, 59), month, year);
+            case MONTH:
                 YearMonth yearMonth = YearMonth.of(year, month);
-                yield new DashboardRange(yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(23, 59, 59), month, year);
-            }
-            case YEAR -> yield new DashboardRange(LocalDate.of(year, 1, 1).atStartOfDay(),
-                    LocalDate.of(year, 12, 31).atTime(23, 59, 59), month, year);
-        };
+                return new DashboardRange(yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(23, 59, 59), month, year);
+            case YEAR:
+                return new DashboardRange(LocalDate.of(year, 1, 1).atStartOfDay(),
+                        LocalDate.of(year, 12, 31).atTime(23, 59, 59), month, year);
+            default:
+                return new DashboardRange(LocalDate.now().minusDays(DAILY_DASHBOARD_DAYS - 1L).atStartOfDay(),
+                        LocalDate.now().atTime(23, 59, 59), month, year);
+        }
     }
 
     private List<InstructorPaymentDTO> filterPaymentsByRange(List<InstructorPaymentDTO> payments, DashboardRange range) {
@@ -544,19 +549,29 @@ public class ViewController {
     }
 
     private String buildPeriodLabel(DashboardPeriod period, int month, int year) {
-        return switch (period) {
-            case DAY -> "10 ngày gần nhất";
-            case MONTH -> String.format("Tháng %02d/%d", month, year);
-            case YEAR -> "Năm " + year;
-        };
+        switch (period) {
+            case DAY:
+                return "10 ngày gần nhất";
+            case MONTH:
+                return String.format("Tháng %02d/%d", month, year);
+            case YEAR:
+                return "Năm " + year;
+            default:
+                return "10 ngày gần nhất";
+        }
     }
 
     private String buildTransactionLabel(DashboardPeriod period, int month, int year) {
-        return switch (period) {
-            case DAY -> "Giao dịch trong 10 ngày gần nhất";
-            case MONTH -> String.format("Giao dịch tháng %02d/%d", month, year);
-            case YEAR -> "Giao dịch năm " + year;
-        };
+        switch (period) {
+            case DAY:
+                return "Giao dịch trong 10 ngày gần nhất";
+            case MONTH:
+                return String.format("Giao dịch tháng %02d/%d", month, year);
+            case YEAR:
+                return "Giao dịch năm " + year;
+            default:
+                return "Giao dịch trong 10 ngày gần nhất";
+        }
     }
 
     private enum DashboardPeriod {
